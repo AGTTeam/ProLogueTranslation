@@ -1,4 +1,4 @@
-# LPrologue Translation
+# ProLogue Translation
 ** WORK IN PROGRESS **
 ## Extract
 - [x] BIN
