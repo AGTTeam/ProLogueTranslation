@@ -30,10 +30,7 @@ def run():
         while find >= 0:
             f.seek(find)
             size = pack.getSize(f)
-            filename = "child"
-            if i < 10:
-                filename += "0"
-            filename += str(i) + ".bin"
+            filename = "child" + str(i).zfill(3) + ".bin"
             f.seek(find)
             with common.Stream(outpack + filename, "wb") as fout:
                 fout.write(f.read(size))

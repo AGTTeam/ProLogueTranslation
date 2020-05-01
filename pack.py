@@ -2,12 +2,7 @@ from hacktools import common, nds
 
 
 def getSubname(i, magic):
-    subname = "file"
-    if i < 10:
-        subname += "00"
-    elif i < 100:
-        subname += "0"
-    subname += str(i)
+    subname = "file" + str(i).zfill(3)
     extension = "bin"
     if magic in ["RGCN", "RLCN", "RCSN", "RECN", "RNAN", "RTFN", "KCAP"]:
         extension = magic[::-1]
