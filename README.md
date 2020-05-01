@@ -1,5 +1,5 @@
 # ProLogue Translation
-** WORK IN PROGRESS **
+**WORK IN PROGRESS**
 ## Extract
 - [x] BIN
 - [x] PACK
