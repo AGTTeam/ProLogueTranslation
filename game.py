@@ -1,4 +1,4 @@
-from hacktools import common
+from hacktools import common, nitro
 
 binrange = [474960, 501390]
 childrange = [1470840, 1475000]
@@ -27,3 +27,14 @@ def readShiftJIS(f, encoding="shift_jisx0213"):
                 common.logDebug("UnicodeDecodeError at", f.tell() - 2)
                 sjis += "UNK(" + common.toHex(b1) + common.toHex(b2) + ")"
     return sjis
+
+
+def readImage(infolder, file, extension):
+    palettefile = file.replace(extension, ".NCLR")
+    mapfile = file.replace(extension, ".NSCR")
+    cellfile = file.replace(extension, ".NCER")
+    # Read the image
+    palettes, image, map, cell, width, height = nitro.readNitroGraphic(infolder + palettefile, infolder + file, infolder + mapfile, infolder + cellfile)
+    if map is not None and map.width == map.height == 512 and image.width == image.height == 256:
+        width = height = image.width
+    return palettes, image, map, cell, width, height, map, cellfile

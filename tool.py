@@ -1,6 +1,7 @@
 import os
 import click
 import pack
+import game
 from hacktools import common, nds, nitro
 
 version = "0.1.0"
@@ -35,8 +36,8 @@ def extract(rom, bin, img, bmd, script, lua):
         extract_bin.run()
     if all or rom or bin:
         pack.extractFolders([packin, childpackin], packout)
-    # if all or img:
-    #    nitro.extractIMG("data/extract_XAP/", "data/out_IMG/")
+    if all or img:
+        nitro.extractIMG(packout, "data/out_IMG/", readfunc=game.readImage)
     if all or bmd:
         nitro.extractNSBMD(packout, "data/out_BMD/", ".BMD")
     if all or script:

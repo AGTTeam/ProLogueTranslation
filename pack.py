@@ -1,3 +1,5 @@
+import codecs
+import os
 from hacktools import common, nds
 
 
@@ -19,7 +21,6 @@ def extractFolders(packin, packout):
     for packfolder in packin:
         files = common.getFiles(packfolder, ".bin")
         for file in common.showProgress(files):
-            common.logDebug("Processing", file, "...")
             extract(packfolder + file, packfolder, packout)
     common.logMessage("Done!")
 
@@ -30,50 +31,82 @@ def getSize(f):
     numfiles = f.readUInt() - 1
     lastfile = numfiles - 1
     f.seek(start + 40 + 8 * lastfile)
-    offset = f.readUInt()
+    offset = f.readUInt() + 32
     size = f.readUInt()
     return offset + size
 
 
 def extract(pack, folderin, folderout, add=""):
+    common.logDebug("Processing", pack, "...")
     packfolder = pack.replace(folderin, folderout).replace(".PACK", "_PACK" + add) + "/"
     common.makeFolders(packfolder)
+    with codecs.open("data/filelist.txt", "r", "utf-8") as flist:
+        section = common.getSection(flist, pack)
     with common.Stream(pack, "rb") as f:
         if f.readString(4) != "KCAP":
             return
         common.makeFolder(packfolder)
         numfiles = f.readUInt() - 1
-        for i in range(numfiles):
-            f.seek(40 + 8 * i)
-            offset = f.readUInt()
+        filei = 0
+        for i in range(1, numfiles + 1):
+            f.seek(40 + 8 * (i - 1))
+            offset = f.readUInt() + 32
             size = f.readUInt()
-            f.seek(32 + offset)
+            f.seek(offset)
             compbyte = f.peek(1)[0]
             magic = f.readString(4)
             f.seek(-4, 1)
-            subname, extension = getSubname(i, magic)
-            # Compressed files
-            if compbyte == 0x10 and "script" not in pack:
-                data = nds.decompress(f, size)
-                # Check magic again after decompression
-                magic = data[:4].decode()
-                subname, extension = getSubname(i, magic)
-            else:
-                # Check for NCGR compression
-                if extension == "NCGR":
-                    header = f.read(48)
-                    compbyte = f.peek(1)[0]
-                    if compbyte == 0x10:
-                        data = header + nds.decompress(f, size - 48)
-                    else:
-                        f.seek(-48, 1)
-                        data = f.read(size)
+            subname, extension = getSubname(i if add == "" else filei, magic)
+            common.logDebug("Extracting file", i, subname, common.toHex(offset), common.toHex(size), common.toHex(compbyte))
+            with common.Stream() as memf:
+                # Compressed files
+                if compbyte == 0x10 and "script" not in pack:
+                    data = nds.decompress(f, size)
+                    memf.write(data)
+                    # Check magic again after decompression
+                    magic = data[:4].decode()
+                    subname, extension = getSubname(i if add == "" else filei, magic)
                 else:
-                    data = f.read(size)
-            if extension == "bin" and data.find(b"function") >= 0:
-                subname = subname.replace(".bin", ".lua")
-            with common.Stream(packfolder + subname, "wb") as fout:
-                fout.write(data)
+                    # Check for NCGR compression
+                    if extension == "NCGR":
+                        memf.write(f.read(40))
+                        ncgrsize = f.readUInt()
+                        unk = f.readUInt()
+                        compbyte = f.peek(1)[0]
+                        if compbyte == 0x10 and (ncgrsize & 0xFF000000) >> 24 == 0x10:
+                            memf.writeUInt(ncgrsize & 0x00FFFFFF)
+                            memf.writeUInt(unk)
+                            memf.write(nds.decompress(f, size - 44))
+                        else:
+                            f.seek(-48, 1)
+                            memf.write(f.read(size))
+                    elif extension == "NSCR":
+                        memf.write(f.read(32))
+                        nscrsize = f.readUInt()
+                        compbyte = f.peek(1)[0]
+                        if compbyte == 0x10 and (nscrsize & 0xFF000000) >> 24 == 0x10:
+                            memf.writeUInt(nscrsize & 0x00FFFFFF)
+                            memf.write(nds.decompress(f, size - 32))
+                        else:
+                            f.seek(-36, 1)
+                            memf.write(f.read(size))
+                    else:
+                        memf.write(f.read(size))
+                if add != "" and os.path.isfile(packfolder + subname):
+                    filei += 1
+                    subname, extension = getSubname(filei, magic)
+                if extension == "bin" and subname.startswith("LUA_"):
+                    extension = "lua"
+                    subname = subname.replace(".bin", ".lua")
+                if str(i) in section:
+                    subname = section[str(i)][0] + "." + extension
+                    if subname.startswith("PAC_") or subname.startswith("CGX_") or subname.startswith("SCR_") or subname.startswith("PAL_"):
+                        subname = subname[4:]
+                with common.Stream(packfolder + subname, "wb") as fout:
+                    memf.seek(0)
+                    fout.write(memf.read())
             # Nested pack files
             if subname.endswith(".PACK"):
                 extract(packfolder + subname, folderin, folderout, "2")
+            if add == "" or extension == "bin":
+                filei += 1

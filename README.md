@@ -3,8 +3,8 @@
 ## Extract
 - [x] BIN
 - [x] PACK
-- [ ] PACK filenames (search in arm9?)
-- [X] CHILD
+- [x] PACK filenames (found for dat_word_battle)
+- [x] CHILD
 - [x] LUA
 - [x] SCRIPT
 - [ ] IMG
