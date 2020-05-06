@@ -18,10 +18,11 @@ def getSubname(i, magic):
 def extractFolders(packin, packout):
     common.logMessage("Extracting PACK ...")
     common.makeFolder(packout)
-    for packfolder in packin:
-        files = common.getFiles(packfolder, ".bin")
-        for file in common.showProgress(files):
-            extract(packfolder + file, packfolder, packout)
+    with codecs.open("data/filelist_output2.txt", "w", "utf-8") as list:
+        for packfolder in packin:
+            files = common.getFiles(packfolder, ".bin")
+            for file in common.showProgress(files):
+                extract(list, packfolder + file, packfolder, packout)
     common.logMessage("Done!")
 
 
@@ -36,10 +37,11 @@ def getSize(f):
     return offset + size
 
 
-def extract(pack, folderin, folderout, add=""):
+def extract(list, pack, folderin, folderout, add=""):
     common.logDebug("Processing", pack, "...")
     packfolder = pack.replace(folderin, folderout).replace(".PACK", "_PACK" + add) + "/"
     common.makeFolders(packfolder)
+    filelist = []
     with codecs.open("data/filelist.txt", "r", "utf-8") as flist:
         section = common.getSection(flist, pack)
     with common.Stream(pack, "rb") as f:
@@ -47,7 +49,7 @@ def extract(pack, folderin, folderout, add=""):
             return
         common.makeFolder(packfolder)
         numfiles = f.readUInt() - 1
-        filei = 0
+        filei = 1
         for i in range(1, numfiles + 1):
             f.seek(40 + 8 * (i - 1))
             offset = f.readUInt() + 32
@@ -61,6 +63,7 @@ def extract(pack, folderin, folderout, add=""):
             with common.Stream() as memf:
                 # Compressed files
                 if compbyte == 0x10 and "script" not in pack:
+                    common.logDebug("Compressed PACK file")
                     data = nds.decompress(f, size)
                     memf.write(data)
                     # Check magic again after decompression
@@ -79,6 +82,7 @@ def extract(pack, folderin, folderout, add=""):
                             memf.write(nds.decompress(f, size - 44))
                         else:
                             f.seek(-48, 1)
+                            memf.seek(0)
                             memf.write(f.read(size))
                     elif extension == "NSCR":
                         memf.write(f.read(32))
@@ -89,6 +93,7 @@ def extract(pack, folderin, folderout, add=""):
                             memf.write(nds.decompress(f, size - 32))
                         else:
                             f.seek(-36, 1)
+                            memf.seek(0)
                             memf.write(f.read(size))
                     else:
                         memf.write(f.read(size))
@@ -102,11 +107,17 @@ def extract(pack, folderin, folderout, add=""):
                     subname = section[str(i)][0] + "." + extension
                     if subname.startswith("PAC_") or subname.startswith("CGX_") or subname.startswith("SCR_") or subname.startswith("PAL_"):
                         subname = subname[4:]
+                else:
+                    filelist.append(str(i) + "=" + subname + "\n")
                 with common.Stream(packfolder + subname, "wb") as fout:
                     memf.seek(0)
                     fout.write(memf.read())
             # Nested pack files
             if subname.endswith(".PACK"):
-                extract(packfolder + subname, folderin, folderout, "2")
+                extract(list, packfolder + subname, folderin, folderout, "2")
             if add == "" or extension == "bin":
                 filei += 1
+    if len(filelist) > 0:
+        list.write("!FILE:" + pack + "\n")
+        for item in filelist:
+            list.write(item)
