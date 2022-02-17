@@ -1,9 +1,9 @@
-# LSuccessors Translation
+# ProLogue Translation
 ## Setup
-Create a "LSuccessorsData" folder and copy the rom as "dn3.nds" in it.  
+Create a "ProLogueData" folder and copy the rom as "dn3.nds" in it.  
 (Optional, only for PSD export) Install [ImageMagick](https://imagemagick.org/script/download.php#windows), check "Add application directory to your system path" while installing.  
 ## Run from binary
-Download the latest [release](https://github.com/Illidanz/LSuccessorsTranslation/releases) outside the data folder.  
+Download the latest [release](https://github.com/Illidanz/ProLogueTranslation/releases) outside the data folder.  
 Run `tool extract` to extract everything and `tool repack` to repack after editing.  
 Run `tool extract --help` or `tool repack --help` for more info.  
 ## Run from source

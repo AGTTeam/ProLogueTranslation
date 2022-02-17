@@ -4,7 +4,7 @@ import game
 from hacktools import common, nds, nitro
 
 version = "0.1.0"
-data = "LSuccessorsData/"
+data = "ProLogueData/"
 romfile = data + "dn3.nds"
 rompatch = data + "dn3_patched.nds"
 infolder = data + "extract/"
