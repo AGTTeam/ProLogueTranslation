@@ -4,9 +4,9 @@ import game
 from hacktools import common
 
 
-def run():
-    infolder = "data/extract_PACK/"
-    outfile = "data/script_output.txt"
+def extract(data):
+    infolder = data + "extract_PACK/"
+    outfile = data + "script_output.txt"
 
     common.logMessage("Extracting SCRIPT to", outfile, "...")
     with codecs.open(outfile, "w", "utf-8") as out:
@@ -35,6 +35,8 @@ def run():
                         first = False
                         out.write("!FILE:" + file + "\n")
                     sjis = game.readShiftJIS(f)
+                    if sjis.endswith("\\v"):
+                        sjis = sjis[:-2]
                     out.write(sjis + "=\n")
                     if ptrpos == firstptr:
                         break

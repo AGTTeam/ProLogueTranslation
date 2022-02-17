@@ -3,9 +3,9 @@ import re
 from hacktools import common
 
 
-def run():
-    infolder = "data/extract_PACK/"
-    outfile = "data/lua_output.txt"
+def extract(data):
+    infolder = data + "extract_PACK/"
+    outfile = data + "lua_output.txt"
 
     common.logMessage("Extracting LUA to", outfile, "...")
     with codecs.open(outfile, "w", "utf-8") as out:

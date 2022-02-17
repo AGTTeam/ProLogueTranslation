@@ -4,17 +4,18 @@ import game
 import pack
 from hacktools import common, nds
 
-binfile = "data/extract/arm9.bin"
-binfiledec = "data/extract/arm9_dec.bin"
-childfile = "data/extract_CHILD/arm9.bin"
-childfiledec = "data/extract_CHILD/arm9_dec.bin"
-childout = "data/child_output.txt"
-outpack = "data/extract_CHILD/pack/"
-outfolder = "data/extract_CHILD/pack/"
-outlist = "data/filelist_output.txt"
 
+def extract(data):
+    binfile = data + "extract/arm9.bin"
+    binfiledec = data + "extract/arm9_dec.bin"
+    childfile = data + "extract_CHILD/arm9.bin"
+    childfiledec = data + "extract_CHILD/arm9_dec.bin"
+    binout = data + "bin_output.txt"
+    childout = data + "child_output.txt"
+    outpack = data + "extract_CHILD/pack/"
+    outfolder = data + "extract_CHILD/pack/"
+    outlist = data + "filelist_output.txt"
 
-def run():
     common.logMessage("Decompressing binary files ...")
     nds.decompressBinary(binfile, binfiledec)
     nds.decompressBinary(childfile, childfiledec)
@@ -32,7 +33,7 @@ def run():
                 f.seek(pos)
                 out.write(str(num) + "=" + name + "\n")
     common.logMessage("Done!")
-    nds.extractBIN(game.binrange, encoding="shift_jisx0213", binin=binfiledec)
+    nds.extractBIN(game.binrange, encoding="shift_jisx0213", binin=binfiledec, binfile=binout)
     nds.extractBIN(game.childrange, encoding="shift_jisx0213", binin=childfiledec, binfile=childout)
     common.logMessage("Extracting embedded PACKs ...")
     common.makeFolder(outfolder)

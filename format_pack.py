@@ -15,14 +15,14 @@ def getSubname(i, magic):
     return subname + "." + extension, extension
 
 
-def extractFolders(packin, packout):
+def extractFolders(data, packin, packout):
     common.logMessage("Extracting PACK ...")
     common.makeFolder(packout)
-    with codecs.open("data/filelist_output2.txt", "w", "utf-8") as list:
+    with codecs.open(data + "filelist_output2.txt", "w", "utf-8") as list:
         for packfolder in packin:
             files = common.getFiles(packfolder, ".bin")
             for file in common.showProgress(files):
-                extract(list, packfolder + file, packfolder, packout)
+                extract(data, list, packfolder + file, packfolder, packout)
     common.logMessage("Done!")
 
 
@@ -37,12 +37,12 @@ def getSize(f):
     return offset + size
 
 
-def extract(list, pack, folderin, folderout, add=""):
+def extract(data, list, pack, folderin, folderout, add=""):
     common.logDebug("Processing", pack, "...")
     packfolder = pack.replace(folderin, folderout).replace(".PACK", "_PACK" + add) + "/"
     common.makeFolders(packfolder)
     filelist = []
-    with codecs.open("data/filelist.txt", "r", "utf-8") as flist:
+    with codecs.open(data + "filelist.txt", "r", "utf-8") as flist:
         section = common.getSection(flist, pack)
     with common.Stream(pack, "rb") as f:
         if f.readString(4) != "KCAP":
@@ -64,10 +64,10 @@ def extract(list, pack, folderin, folderout, add=""):
                 # Compressed files
                 if compbyte == 0x10 and "script" not in pack:
                     common.logDebug("Compressed PACK file")
-                    data = nds.decompress(f, size)
-                    memf.write(data)
+                    packdata = nds.decompress(f, size)
+                    memf.write(packdata)
                     # Check magic again after decompression
-                    magic = data[:4].decode()
+                    magic = packdata[:4].decode()
                     subname, extension = getSubname(i if add == "" else filei, magic)
                 else:
                     # Check for NCGR compression
@@ -114,7 +114,7 @@ def extract(list, pack, folderin, folderout, add=""):
                     fout.write(memf.read())
             # Nested pack files
             if subname.endswith(".PACK"):
-                extract(list, packfolder + subname, folderin, folderout, "2")
+                extract(data, list, packfolder + subname, folderin, folderout, "2")
             if add == "" or extension == "bin":
                 filei += 1
     if len(filelist) > 0:

@@ -1,7 +1,7 @@
 from hacktools import common, nitro
 
-binrange = [474960, 501390]
-childrange = [1470840, 1475000]
+binrange = [(474960, 501390)]
+childrange = [(1470840, 1475000)]
 
 
 def readShiftJIS(f, encoding="shift_jisx0213"):
