@@ -9,6 +9,7 @@ def extract(data):
     outfile = data + "script_output.txt"
 
     common.logMessage("Extracting SCRIPT to", outfile, "...")
+    foundstr = []
     with codecs.open(outfile, "w", "utf-8") as out:
         files = common.getFiles(infolder, ".bin")
         for file in common.showProgress(files):
@@ -20,7 +21,7 @@ def extract(data):
                 first = True
                 size = f.readUInt()
                 if size != filesize:
-                    common.logError("Malformed bin file", file, size, filesize)
+                    common.logWarning("Malformed bin file", file, size, filesize)
                     continue
                 f.seek(8, 1)
                 stringsection = f.readUInt()
@@ -31,13 +32,15 @@ def extract(data):
                 while strptr != 0:
                     ptrpos = f.tell()
                     f.seek(strptr)
-                    if first:
-                        first = False
-                        out.write("!FILE:" + file + "\n")
                     sjis = game.readShiftJIS(f)
                     if sjis.endswith("\\v"):
                         sjis = sjis[:-2]
-                    out.write(sjis + "=\n")
+                    if sjis not in foundstr:
+                        if first:
+                            first = False
+                            out.write("!FILE:" + file + "\n")
+                        foundstr.append(sjis)
+                        out.write(sjis + "=\n")
                     if ptrpos == firstptr:
                         break
                     f.seek(ptrpos)

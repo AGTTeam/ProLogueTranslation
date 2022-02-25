@@ -1,7 +1,7 @@
 import codecs
 import os
 import game
-import pack
+import format_pack
 from hacktools import common, nds
 
 
@@ -45,7 +45,7 @@ def extract(data):
         i = 0
         while find >= 0:
             f.seek(find)
-            size = pack.getSize(f)
+            size = format_pack.getSize(f)
             filename = "child" + str(i).zfill(3) + ".bin"
             f.seek(find)
             with common.Stream(outpack + filename, "wb") as fout:

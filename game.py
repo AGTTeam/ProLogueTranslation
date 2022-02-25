@@ -1,3 +1,4 @@
+import os
 from hacktools import common, nitro
 
 binrange = [(474960, 501390)]
@@ -26,6 +27,13 @@ def readShiftJIS(f, encoding="shift_jisx0213"):
             except UnicodeDecodeError:
                 common.logDebug("UnicodeDecodeError at", f.tell() - 2)
                 sjis += "UNK(" + common.toHex(b1) + common.toHex(b2) + ")"
+    return replaceCharcodes(sjis)
+
+
+def replaceCharcodes(sjis):
+    sjis = sjis.replace("㍑㍑㍑㍑", "<last>")
+    sjis = sjis.replace("㌘㌘㌘㌘", "<first>")
+    sjis = sjis.replace("㍗㍗㍗㍗", "<name>")
     return sjis
 
 

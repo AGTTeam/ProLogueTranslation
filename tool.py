@@ -64,7 +64,7 @@ def repack(no_rom, bin, img, bmd, script, lua):
 
 
 if __name__ == "__main__":
-    click.echo("LSuccessorsTranslation version " + version)
+    click.echo("ProLogueTranslation version " + version)
     if not os.path.isdir(data):
         common.logError(data, "folder not found.")
         quit()

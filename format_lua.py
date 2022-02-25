@@ -1,5 +1,6 @@
 import codecs
 import re
+import game
 from hacktools import common
 
 
@@ -19,8 +20,9 @@ def extract(data):
             for luastring in luastrings:
                 luastring = luastring.replace("¥", "\\").replace("\\n", "|")
                 if not common.isAscii(luastring):
+                    luastring = game.replaceCharcodes(luastring)
                     if first:
                         out.write("!FILE:" + file + "\n")
                         first = False
-                    out.write(luastring + "==\n")
+                    out.write(luastring + "=\n")
     common.logMessage("Done! Extracted", len(files), "files")
