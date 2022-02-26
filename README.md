@@ -14,7 +14,6 @@ Run `pipenv sync`.
 Run the tool with `pipenv run tool.py` or build with `pipenv run pyinstaller tool.spec`.  
 ## Text Editing
 Rename the \*\_output.txt files to \*\_input.txt (bin_output.txt to bin_input.txt, etc) and add translations for each line after the `=` sign.  
-Lines can be automatically centered by adding `<<` at the start of the line.  
 To blank out a line, use a single `!`. If just left empty, the line will be left untranslated.  
 Comments can be added at the end of lines by using `#`  
 ## Image Editing
