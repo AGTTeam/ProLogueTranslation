@@ -3,7 +3,7 @@ import click
 import game
 from hacktools import common, nds, nitro
 
-version = "0.1.0"
+version = "0.4.0"
 data = "ProLogueData/"
 romfile = data + "dn3.nds"
 rompatch = data + "dn3_patched.nds"
@@ -11,9 +11,8 @@ infolder = data + "extract/"
 replacefolder = data + "replace/"
 outfolder = data + "repack/"
 patchfile = data + "patch.xdelta"
-packin = data + "extract/data/"
-childpackin = data + "extract_CHILD/pack/"
 packout = data + "extract_PACK/"
+packrepack = data + "repack_PACK/"
 childfile = data + "extract/data/mb/dn3_child.srl"
 childin = data + "extract_CHILD/"
 childout = data + "repack_CHILD/"
@@ -36,7 +35,7 @@ def extract(rom, bin, img, bmd, script, lua):
         format_bin.extract(data)
     if all or rom or bin:
         import format_pack
-        format_pack.extractFolders(data, [packin, childpackin], packout)
+        format_pack.extractFolders(data)
     if all or img:
         nitro.extractIMG(packout, data + "out_IMG/", readfunc=game.readImage)
     if all or bmd:
@@ -55,8 +54,18 @@ def extract(rom, bin, img, bmd, script, lua):
 @click.option("--img", is_flag=True, default=False)
 @click.option("--script", is_flag=True, default=False)
 @click.option("--lua", is_flag=True, default=False)
-def repack(no_rom, bin, img, bmd, script, lua):
-    # all = not bin and not img and not script and not lua
+@click.option("--pack", is_flag=True, default=False)
+def repack(no_rom, bin, img, script, lua, pack):
+    all = not bin and not img and not script and not lua and not pack
+    if all or bin:
+        import format_bin
+        format_bin.repack(data)
+    if all or script:
+        import format_script
+        format_script.repack(data)
+    if all or pack or img or script or lua:
+        import format_pack
+        format_pack.repackFolders(data)
     if not no_rom:
         if os.path.isdir(replacefolder):
             common.mergeFolder(replacefolder, outfolder)
