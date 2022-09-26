@@ -5,6 +5,9 @@ import format_pack
 from hacktools import common, nds
 
 
+def detectEncodedString(f, encoding):
+    return common.detectEncodedString(f, encoding, [0x23, 0x25, 0x61])
+
 def repack(data):
     binfile = data + "bin_input.txt"
     binfilein = data + "extract/arm9_dec.bin"
@@ -27,7 +30,7 @@ def repack(data):
             common.copyFile(overlayfolderin + overlay, overlayfolderout + overlay)
             section = common.getSection(overlayf, overlay)
             chartot, transtot = common.getSectionPercentage(section, chartot, transtot)
-            common.repackBinaryStrings(section, overlayfolderin + overlay, overlayfolderout + overlay, [(0, os.path.getsize(overlayfolderin + overlay))], encoding="shift_jisx0213")
+            #common.repackBinaryStrings(section, overlayfolderin + overlay, overlayfolderout + overlay, [(0, os.path.getsize(overlayfolderin + overlay))], readfunc=detectEncodedString, encoding="shift_jisx0213")
     common.logMessage("Done! Translation is at {0:.2f}%".format((100 * transtot) / chartot))
     common.logMessage("Compressing files ...")
     nds.compressBinary(binfileout, binfileout.replace("_dec", ""))
@@ -59,7 +62,6 @@ def extract(data):
     for overlay in common.getFiles(overlayfolder, ".bin"):
         if "_dec" in overlay:
             continue
-        common.logMessage(overlayfolder + overlay)
         nds.decompressBinary(overlayfolder + overlay, overlayfolder + overlay.replace(".bin", "_dec.bin"))
     common.logMessage("Done!")
     common.logMessage("Extracting file list ...")
@@ -84,7 +86,7 @@ def extract(data):
             if "_dec" not in overlay:
                 continue
             first = True
-            strings, positions = common.extractBinaryStrings(overlayfolder + overlay, [(0, os.path.getsize(overlayfolder + overlay))], common.detectEncodedString, "shift_jisx0213")
+            strings, positions = common.extractBinaryStrings(overlayfolder + overlay, [(0, os.path.getsize(overlayfolder + overlay))], detectEncodedString, "shift_jisx0213")
             totstrings += len(strings)
             for i in range(len(strings)):
                 if first:
