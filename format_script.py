@@ -44,7 +44,7 @@ def repack(data):
     common.logMessage("Repacking SCRIPT from", infile, "...")
     glyphs = nitro.readNFTR(fontfile).glyphs
     with codecs.open(infile, "r", "utf-8") as scriptin:
-        allsections = common.getSection(scriptin, "")
+        allsections = common.getSection(scriptin, "", justone=False)
         for file in common.showProgress(common.getFiles(infolder, ".bin")):
             if "file000.bin" in file:
                 continue
