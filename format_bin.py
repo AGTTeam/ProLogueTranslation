@@ -17,6 +17,8 @@ def repack(data):
     binfile = data + "bin_input.txt"
     binfilein = data + "extract/arm9_dec.bin"
     binfileout = data + "repack/arm9_dec.bin"
+    ovtablein = data + "extract/y9.bin"
+    ovtableout = data + "repack/y9.bin"
     overlayfile = data + "overlay_input.txt"
     overlayfolderin = data + "extract/overlay/"
     overlayfolderout = data + "repack/overlay/"
@@ -32,19 +34,27 @@ def repack(data):
         for overlay in common.getFiles(overlayfolderin, ".bin"):
             if "_dec" not in overlay:
                 continue
+            common.logDebug("Processing", overlay)
             common.copyFile(overlayfolderin + overlay, overlayfolderout + overlay)
             section = common.getSection(overlayf, overlay)
             chartot, transtot = common.getSectionPercentage(section, chartot, transtot)
-            #common.repackBinaryStrings(section, overlayfolderin + overlay, overlayfolderout + overlay, [(0, os.path.getsize(overlayfolderin + overlay))], readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213")
+            common.repackBinaryStrings(section, overlayfolderin + overlay, overlayfolderout + overlay, [(0, os.path.getsize(overlayfolderin + overlay))], readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213")
     common.logMessage("Done! Translation is at {0:.2f}%".format((100 * transtot) / chartot))
     common.logMessage("Compressing files ...")
     nds.compressBinary(binfileout, binfileout.replace("_dec", ""))
     nds.compressBinary(childfileout, childfileout.replace("_dec", ""))
-    for overlay in common.getFiles(overlayfolderout, ".bin"):
-        if "_dec" not in overlay:
-            continue
-        nds.compressBinary(overlayfolderout + overlay, overlayfolderout + overlay.replace("_dec", ""), False)
-        os.remove(overlayfolderout + overlay)
+    common.copyFile(ovtablein, ovtableout)
+    ovfiles = common.getFiles(overlayfolderout, ".bin")
+    with common.Stream(ovtableout, "rb+") as f:
+        for i in range(len(ovfiles)):
+            overlay = ovfiles[i]
+            if "_dec" not in overlay:
+                continue
+            nds.compressBinary(overlayfolderout + overlay, overlayfolderout + overlay.replace("_dec", ""), False)
+            os.remove(overlayfolderout + overlay)
+            # Update uncompressed size
+            f.seek(((i - 1) // 2) * 0x20 + 0x1c)
+            f.writeUShort(os.path.getsize(overlayfolderout + overlay.replace("_dec", "")))
     common.logMessage("Done!")
 
 
