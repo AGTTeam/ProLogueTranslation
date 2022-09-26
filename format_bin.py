@@ -10,7 +10,7 @@ def detectEncodedString(f, encoding):
 
 
 def writeEncodedString(f, s, maxlen=0, encoding="shift_jis"):
-    common.writeEncodedString(f, s.replace("<white>", "#W").replace("<red>", "#R"), maxlen, encoding)
+    return common.writeEncodedString(f, s.replace("<white>", "#W").replace("<red>", "#R"), maxlen, encoding)
 
 
 def repack(data):
@@ -35,7 +35,7 @@ def repack(data):
             common.copyFile(overlayfolderin + overlay, overlayfolderout + overlay)
             section = common.getSection(overlayf, overlay)
             chartot, transtot = common.getSectionPercentage(section, chartot, transtot)
-            #common.repackBinaryStrings(section, overlayfolderin + overlay, overlayfolderout + overlay, [(0, os.path.getsize(overlayfolderin + overlay))], readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213")
+            common.repackBinaryStrings(section, overlayfolderin + overlay, overlayfolderout + overlay, [(0, os.path.getsize(overlayfolderin + overlay))], readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213")
     common.logMessage("Done! Translation is at {0:.2f}%".format((100 * transtot) / chartot))
     common.logMessage("Compressing files ...")
     nds.compressBinary(binfileout, binfileout.replace("_dec", ""))
