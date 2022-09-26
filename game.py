@@ -56,6 +56,8 @@ def replaceCharcodes(sjis):
     sjis = sjis.replace("㍑㍑㍑㍑", "<last>")
     sjis = sjis.replace("㌘㌘㌘㌘", "<first>")
     sjis = sjis.replace("㍗㍗㍗㍗", "<name>")
+    sjis = sjis.replace("=R", "<red>")
+    sjis = sjis.replace("=W", "<white>")
     return sjis
 
 
@@ -63,6 +65,8 @@ def restoreCharcodes(sjis):
     sjis = sjis.replace("<last>", "㍑㍑㍑㍑")
     sjis = sjis.replace("<first>", "㌘㌘㌘㌘")
     sjis = sjis.replace("<name>", "㍗㍗㍗㍗")
+    sjis = sjis.replace("<red>", "=R")
+    sjis = sjis.replace("<white>", "=W")
     return sjis
 
 
