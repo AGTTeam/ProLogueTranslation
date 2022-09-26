@@ -77,6 +77,12 @@ def repack(data):
                             newstring = allsections[oldstring][0]
                         if newstring != oldstring:
                             newstring = common.wordwrap(newstring, glyphs, game.wordwrap, game.detectTextCode, sectionsep="\\v")
+                            # Check wordwrapping results for long lines
+                            newstringcheck = newstring.split("\\v")
+                            for check in newstringcheck:
+                                if check.count("|") > 1:
+                                    common.logWarning("Line too long:", newstring)
+                                    break
                         f.writeUIntAt(ptrpos, f.tell())
                         ptrpos += 4
                         if addv:

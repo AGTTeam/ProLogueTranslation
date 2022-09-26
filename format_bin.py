@@ -6,7 +6,12 @@ from hacktools import common, nds
 
 
 def detectEncodedString(f, encoding):
-    return common.detectEncodedString(f, encoding, [0x23, 0x25, 0x61])
+    return common.detectEncodedString(f, encoding, [0x23, 0x25, 0x61]).replace("#W", "<white>").replace("#R", "<red>")
+
+
+def writeEncodedString(f, s, maxlen=0, encoding="shift_jis"):
+    common.writeEncodedString(f, s.replace("<white>", "#W").replace("<red>", "#R"), maxlen, encoding)
+
 
 def repack(data):
     binfile = data + "bin_input.txt"
@@ -19,8 +24,8 @@ def repack(data):
     childfilein = data + "extract_CHILD/arm9_dec.bin"
     childfileout = data + "repack_CHILD/arm9_dec.bin"
 
-    nds.repackBIN(game.binrange, encoding="shift_jisx0213", binin=binfilein, binout=binfileout, binfile=binfile)
-    nds.repackBIN(game.childrange, encoding="shift_jisx0213", binin=childfilein, binout=childfileout, binfile=childfile)
+    nds.repackBIN(game.binrange, readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", binin=binfilein, binout=binfileout, binfile=binfile)
+    nds.repackBIN(game.childrange, readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", binin=childfilein, binout=childfileout, binfile=childfile)
     common.logMessage("Repacking overlays from", binfile, "...")
     chartot = transtot = 0
     with codecs.open(overlayfile, "r", "utf-8") as overlayf:
@@ -30,7 +35,7 @@ def repack(data):
             common.copyFile(overlayfolderin + overlay, overlayfolderout + overlay)
             section = common.getSection(overlayf, overlay)
             chartot, transtot = common.getSectionPercentage(section, chartot, transtot)
-            #common.repackBinaryStrings(section, overlayfolderin + overlay, overlayfolderout + overlay, [(0, os.path.getsize(overlayfolderin + overlay))], readfunc=detectEncodedString, encoding="shift_jisx0213")
+            #common.repackBinaryStrings(section, overlayfolderin + overlay, overlayfolderout + overlay, [(0, os.path.getsize(overlayfolderin + overlay))], readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213")
     common.logMessage("Done! Translation is at {0:.2f}%".format((100 * transtot) / chartot))
     common.logMessage("Compressing files ...")
     nds.compressBinary(binfileout, binfileout.replace("_dec", ""))
@@ -77,8 +82,8 @@ def extract(data):
                 f.seek(pos)
                 out.write(str(num) + "=" + name + "\n")
     common.logMessage("Done!")
-    nds.extractBIN(game.binrange, encoding="shift_jisx0213", binin=binfiledec, binfile=binout)
-    nds.extractBIN(game.childrange, encoding="shift_jisx0213", binin=childfiledec, binfile=childout)
+    nds.extractBIN(game.binrange, readfunc=detectEncodedString, encoding="shift_jisx0213", binin=binfiledec, binfile=binout)
+    nds.extractBIN(game.childrange, readfunc=detectEncodedString, encoding="shift_jisx0213", binin=childfiledec, binfile=childout)
     common.logMessage("Extracting overlays to", overlayout, "...")
     with codecs.open(overlayout, "w", "utf-8") as overlayf:
         totstrings = 0
