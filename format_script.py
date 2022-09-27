@@ -80,7 +80,7 @@ def repack(data):
                             # Check wordwrapping results for long lines
                             newstringcheck = newstring.split("\\v")
                             for check in newstringcheck:
-                                if check.count("|") > 1:
+                                if check.count("|") > 2:
                                     common.logWarning("Line too long:", newstring)
                                     break
                         f.writeUIntAt(ptrpos, f.tell())
