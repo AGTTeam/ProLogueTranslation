@@ -97,7 +97,7 @@ def repack(data):
                     f.writeUIntAt(0, f.tell())
 
 
-def extract(data):
+def extract(data, skipdupes=True):
     infolder = data + "extract_PACK/"
     outfile = data + "script_output.txt"
 
@@ -118,7 +118,7 @@ def extract(data):
                 for string in script.strings:
                     if string.endswith("\\v"):
                         string = string[:-2]
-                    if string not in foundstr:
+                    if not skipdupes or string not in foundstr:
                         foundstr.append(string)
                         out.write(string + "=\n")
     common.logMessage("Done! Extracted", len(files), "files")

@@ -6,17 +6,21 @@ from hacktools import common, nds
 
 
 def detectEncodedString(f, encoding):
-    return common.detectEncodedString(f, encoding, [0x23, 0x25, 0x61]).replace("#W", "<white>").replace("#R", "<red>")
+    return game.replaceCharcodes(common.detectEncodedString(f, encoding, [0x23, 0x25, 0x61]).replace("#W", "<white>").replace("#R", "<red>"))
 
 
 def writeEncodedString(f, s, maxlen=0, encoding="shift_jis"):
-    return common.writeEncodedString(f, s.replace("<white>", "#W").replace("<red>", "#R"), maxlen, encoding)
+    return common.writeEncodedString(f, game.restoreCharcodes(s.replace("<white>", "#W").replace("<red>", "#R")), maxlen, encoding)
 
 
 def repack(data):
     binfile = data + "bin_input.txt"
     binfilein = data + "extract/arm9_dec.bin"
     binfileout = data + "repack/arm9_dec.bin"
+    headerin = data + "extract/header.bin"
+    headerout = data + "repack/header.bin"
+    childheaderin = data + "extract_CHILD/header.bin"
+    childheaderout = data + "repack_CHILD/header.bin"
     ovtablein = data + "extract/y9.bin"
     ovtableout = data + "repack/y9.bin"
     overlayfile = data + "overlay_input.txt"
@@ -26,35 +30,75 @@ def repack(data):
     childfilein = data + "extract_CHILD/arm9_dec.bin"
     childfileout = data + "repack_CHILD/arm9_dec.bin"
 
-    nds.repackBIN(game.binrange, readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", binin=binfilein, binout=binfileout, binfile=binfile)
-    nds.repackBIN(game.childrange, readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", binin=childfilein, binout=childfileout, binfile=childfile)
-    common.logMessage("Repacking overlays from", binfile, "...")
-    chartot = transtot = 0
-    with codecs.open(overlayfile, "r", "utf-8") as overlayf:
-        for overlay in common.getFiles(overlayfolderin, ".bin"):
-            if "_dec" not in overlay:
-                continue
-            common.logDebug("Processing", overlay)
-            common.copyFile(overlayfolderin + overlay, overlayfolderout + overlay)
-            section = common.getSection(overlayf, overlay)
-            chartot, transtot = common.getSectionPercentage(section, chartot, transtot)
-            common.repackBinaryStrings(section, overlayfolderin + overlay, overlayfolderout + overlay, [(0, os.path.getsize(overlayfolderin + overlay))], readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213")
-    common.logMessage("Done! Translation is at {0:.2f}%".format((100 * transtot) / chartot))
-    common.logMessage("Compressing files ...")
-    nds.compressBinary(binfileout, binfileout.replace("_dec", ""))
-    nds.compressBinary(childfileout, childfileout.replace("_dec", ""))
+    fallbackf = common.Stream().__enter__()
+    injectfallback = 0x020ebcc0 #0x020a3700
+    injectsize = 0x7a7c0 #0x6500
+    injectoffset = nds.expandBIN(binfilein, binfileout, headerin, headerout, injectsize, injectfallback)
+    nds.repackBIN(game.binrange, readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", binin=binfilein, binout=binfileout, binfile=binfile, fallbackf=fallbackf, injectfallback=injectfallback, nocopy=True)
+    childfallbackf = common.Stream().__enter__()
+    childinjectfallback = 0x0226e7a0
+    childinjectsize = 0x10000
+    childinjectoffset = nds.expandBIN(childfilein, childfileout, childheaderin, childheaderout, childinjectsize, childinjectfallback)
+    nds.repackBIN(game.childrange, readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", binin=childfilein, binout=childfileout, binfile=childfile, fallbackf=childfallbackf, injectfallback=childinjectfallback, nocopy=True)
     common.copyFile(ovtablein, ovtableout)
-    ovfiles = common.getFiles(overlayfolderout, ".bin")
-    with common.Stream(ovtableout, "rb+") as f:
+    with common.Stream(ovtableout, "rb+") as ovt:
+        common.logMessage("Repacking overlays from", binfile, "...")
+        chartot = transtot = 0
+        ovfiles = common.getFiles(overlayfolderin, ".bin")
+        with codecs.open(overlayfile, "r", "utf-8") as overlayf:
+            for i in range(len(ovfiles)):
+                overlay = ovfiles[i]
+                if "_dec" not in overlay:
+                    continue
+                common.logDebug("Processing", overlay)
+                common.copyFile(overlayfolderin + overlay, overlayfolderout + overlay)
+                section = common.getSection(overlayf, overlay)
+                chartot, transtot = common.getSectionPercentage(section, chartot, transtot)
+                filesize = os.path.getsize(overlayfolderin + overlay)
+                # Read the ram address from the overlay table
+                ovt.seek(((i - 1) // 2) * 0x20 + 0x4)
+                ramaddr = ovt.readUInt()
+                notfound = common.repackBinaryStrings(section, overlayfolderin + overlay, overlayfolderout + overlay, [(0, filesize)], [], readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", pointerstart=ramaddr, injectstart=ramaddr, fallbackf=fallbackf, injectfallback=injectfallback)
+                for pointer in notfound:
+                    common.logError("Pointer", common.toHex(pointer.old), "->", common.toHex(pointer.new), "not found for string", pointer.str)
+        common.logMessage("Done! Translation is at {0:.2f}%".format((100 * transtot) / chartot))
+        # Write the fallback files
+        if fallbackf.tell() > injectsize:
+            common.logError("Fallback file is too big by", (fallbackf.tell() - injectsize), "bytes")
+            fallbackf.seek(injectsize)
+            fallbackf.truncate()
+        else:
+            fallbackf.writeZero(injectsize - fallbackf.tell())
+        fallbackf.seek(0)
+        with common.Stream(binfileout, "rb+") as binf:
+            binf.seek(injectoffset)
+            binf.write(fallbackf.read(injectsize))
+        if childfallbackf.tell() > childinjectsize:
+            common.logError("Child fallback file is too big by", (childfallbackf.tell() - childinjectsize), "bytes")
+            childfallbackf.seek(childinjectsize)
+            childfallbackf.truncate()
+        else:
+            childfallbackf.writeZero(childinjectsize - childfallbackf.tell())
+        childfallbackf.seek(0)
+        with common.Stream(childfileout, "rb+") as binf:
+            binf.seek(childinjectoffset)
+            binf.write(childfallbackf.read(childinjectsize))
+        # Compress and update overlay table
+        common.logMessage("Compressing files ...")
+        nds.compressBinary(binfileout, binfileout.replace("_dec", ""))
+        nds.compressBinary(childfileout, childfileout.replace("_dec", ""))
+        ovfiles = common.getFiles(overlayfolderout, ".bin")
         for i in range(len(ovfiles)):
             overlay = ovfiles[i]
             if "_dec" not in overlay:
                 continue
             nds.compressBinary(overlayfolderout + overlay, overlayfolderout + overlay.replace("_dec", ""), False)
+            # Update uncompressed and compressed size
+            ovt.seek(((i - 1) // 2) * 0x20 + 0x8)
+            ovt.writeUInt(os.path.getsize(overlayfolderout + overlay))
+            ovt.seek(((i - 1) // 2) * 0x20 + 0x1c)
+            ovt.writeUShort(os.path.getsize(overlayfolderout + overlay.replace("_dec", "")))
             os.remove(overlayfolderout + overlay)
-            # Update uncompressed size
-            f.seek(((i - 1) // 2) * 0x20 + 0x1c)
-            f.writeUShort(os.path.getsize(overlayfolderout + overlay.replace("_dec", "")))
     common.logMessage("Done!")
 
 
