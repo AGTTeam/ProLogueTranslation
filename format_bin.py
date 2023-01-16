@@ -1,5 +1,6 @@
 import codecs
 import os
+import struct
 import game
 import format_pack
 from hacktools import common, nds
@@ -29,7 +30,9 @@ def repack(data):
     childfile = data + "child_input.txt"
     childfilein = data + "extract_CHILD/arm9_dec.bin"
     childfileout = data + "repack_CHILD/arm9_dec.bin"
+    childfilepack = data + "repack_CHILD/pack/"
 
+    # Expand and repack the bin files
     fallbackf = common.Stream().__enter__()
     injectfallback = 0x020ebcc0 #0x020a3700
     injectsize = 0x7a7c0 #0x6500
@@ -37,9 +40,49 @@ def repack(data):
     nds.repackBIN(game.binrange, readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", binin=binfilein, binout=binfileout, binfile=binfile, fallbackf=fallbackf, injectfallback=injectfallback, nocopy=True)
     childfallbackf = common.Stream().__enter__()
     childinjectfallback = 0x0226e7a0
-    childinjectsize = 0x10000
+    childinjectsize = 0x50000
     childinjectoffset = nds.expandBIN(childfilein, childfileout, childheaderin, childheaderout, childinjectsize, childinjectfallback)
     nds.repackBIN(game.childrange, readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", binin=childfilein, binout=childfileout, binfile=childfile, fallbackf=childfallbackf, injectfallback=childinjectfallback, nocopy=True)
+    # Pad to 0x10
+    if childfallbackf.tell() % 0x10 > 0:
+        childfallbackf.writeZero(0x10 - (childfallbackf.tell() % 0x10))
+    # Update the embedded PACK files
+    with common.Stream(childfilein, "rb") as f:
+        embeds = getEmbeddedPACK(f)
+    # Repack them in reverse order, since the biggest one is at the end
+    ptrs = []
+    with common.Stream(childfileout, "rb+") as f:
+        f.seek(0x2e988)
+        currentf = f
+        for i in reversed(range(len(embeds))):
+            embed = embeds[i]
+            filename = childfilepack + embed["filename"]
+            if currentf == f and f.tell() + embed["size"] > 0x124e08:
+                currentf = childfallbackf
+            oldptr = 0x02000000 + embed["offset"]
+            if currentf == f:
+                newptr = 0x02000000 + currentf.tell()
+            else:
+                newptr = childinjectfallback + currentf.tell()
+            ptrs.append((oldptr, newptr))
+            with common.Stream(filename, "rb") as fin:
+                currentf.write(fin.read())
+    # Update the pointers
+    with common.Stream(childfileout, "rb+") as f:
+        allbin = f.read()
+        for ptr in ptrs:
+            pointersearch = struct.pack("<I", ptr[0])
+            index = 0
+            common.logDebug("Searching for pointer", common.toHex(ptr[0]))
+            while index < len(allbin):
+                index = allbin.find(pointersearch, index)
+                if index < 0:
+                    break
+                common.logDebug("Replaced pointer at", common.toHex(index))
+                f.seek(index)
+                f.writeUInt(ptr[1])
+                index += 4
+    # Repack the overlays
     common.copyFile(ovtablein, ovtableout)
     with common.Stream(ovtableout, "rb+") as ovt:
         common.logMessage("Repacking overlays from", binfile, "...")
@@ -155,19 +198,29 @@ def extract(data):
     common.logMessage("Done! Extracted", totstrings, "lines")
     common.logMessage("Extracting embedded PACKs ...")
     common.makeFolder(outfolder)
-    size = os.path.getsize(childfiledec)
     with common.Stream(childfiledec, "rb") as f:
-        all = f.read()
-        search = b"KCAP"
-        find = all.find(search)
-        i = 0
-        while find >= 0:
-            f.seek(find)
-            size = format_pack.getPackSize(f)
-            filename = "child" + str(i).zfill(3) + ".bin"
-            f.seek(find)
-            with common.Stream(outpack + filename, "wb") as fout:
-                fout.write(f.read(size))
-            i += 1
-            find = all.find(search, f.tell())
+        embeds = getEmbeddedPACK(f)
+        for embed in embeds:
+            f.seek(embed["offset"])
+            with common.Stream(outpack + embed["filename"], "wb") as fout:
+                fout.write(f.read(embed["size"]))
+    common.copyFolder(outpack, outpack.replace("extract_", "repack_"))
     common.logMessage("Done! Extracted", i, "files.")
+
+
+def getEmbeddedPACK(f):
+    ret = []
+    all = f.read()
+    search = b"KCAP"
+    find = all.find(search)
+    i = 0
+    while find >= 0:
+        f.seek(find)
+        size = format_pack.getPackSize(f)
+        filename = "child" + str(i).zfill(3) + ".bin"
+        ret.append({"offset": find, "size": size, "filename": filename})
+        common.logDebug("Embbeded pack at", common.toHex(find), "with size", common.toHex(size))
+        f.seek(find + size)
+        find = all.find(search, f.tell())
+        i += 1
+    return ret

@@ -3,7 +3,7 @@ import click
 import game
 from hacktools import common, nds, nitro
 
-version = "0.6.0"
+version = "0.6.1"
 data = "ProLogueData/"
 romfile = data + "dn3.nds"
 rompatch = data + "dn3_patched.nds"
@@ -62,9 +62,6 @@ def extract(rom, bin, img, bmd, script, lua):
 @click.option("--pack", is_flag=True, default=False)
 def repack(no_rom, bin, img, script, lua, pack):
     all = not bin and not img and not script and not lua and not pack
-    if all or bin:
-        import format_bin
-        format_bin.repack(data)
     if all or script:
         import format_script
         format_script.repack(data)
@@ -74,6 +71,9 @@ def repack(no_rom, bin, img, script, lua, pack):
     if all or pack or img or script or lua:
         import format_pack
         format_pack.repackFolders(data)
+    if all or bin:
+        import format_bin
+        format_bin.repack(data)
     if not no_rom:
         if os.path.isdir(replacefolder):
             common.mergeFolder(replacefolder, outfolder)
