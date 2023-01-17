@@ -63,8 +63,8 @@ def repackFolders(data, debon=False, deboff=False):
     debfilein = data + "extract_PACK/dat_word_battle.bin/LUA_OPENING.lua"
     debfileout = debfilein.replace("extract_", "repack_")
 
-    common.copyFile(debfilein, debfileout)
     if debon or deboff:
+        common.copyFile(debfilein, debfileout)
         with codecs.open(debfileout, "r", "shift_jisx0213") as f:
             alldeb = f.read()
         if debon:
