@@ -3,7 +3,7 @@ import os
 import struct
 import game
 import format_pack
-from hacktools import common, nds
+from hacktools import common, nds, nitro
 
 
 def detectEncodedString(f, encoding):
@@ -11,6 +11,9 @@ def detectEncodedString(f, encoding):
 
 
 def writeEncodedString(f, s, maxlen=0, encoding="shift_jis"):
+    global glyphs
+    # Wordwrap the string
+    s = common.wordwrap(s, glyphs, game.wordwrap, game.detectTextCode, sectionsep="\\v")
     return common.writeEncodedString(f, game.restoreCharcodes(s.replace("<white>", "#W").replace("<red>", "#R")), maxlen, encoding)
 
 
@@ -31,7 +34,10 @@ def repack(data):
     childfilein = data + "extract_CHILD/arm9_dec.bin"
     childfileout = data + "repack_CHILD/arm9_dec.bin"
     childfilepack = data + "repack_CHILD/pack/"
+    fontfile = data + "replace_PACK/dat_font_00.bin/file002.NFTR"
 
+    global glyphs
+    glyphs = nitro.readNFTR(fontfile).glyphs
     # Expand and repack the bin files
     fallbackf = common.Stream().__enter__()
     injectfallback = 0x020ebcc0 #0x020a3700
@@ -126,7 +132,9 @@ def repack(data):
         with common.Stream(childfileout, "rb+") as binf:
             binf.seek(childinjectoffset)
             binf.write(childfallbackf.read(childinjectsize))
-        # Compress and update overlay table
+        # Apply armips patches, compress and update overlay table
+        common.armipsPatch(common.bundledFile("bin_patch.asm"))
+        common.armipsPatch(common.bundledFile("bin_child_patch.asm"))
         common.logMessage("Compressing files ...")
         nds.compressBinary(binfileout, binfileout.replace("_dec", ""))
         nds.compressBinary(childfileout, childfileout.replace("_dec", ""))
