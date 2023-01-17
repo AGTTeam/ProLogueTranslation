@@ -33,7 +33,8 @@ def repack(data):
                 with codecs.open(infolder + file, "r", "shift_jisx0213") as luaf:
                     lua = luaf.read()
                 lua = "\r\n".join(vwftable) + "\r\n\r\n" + lua
-                lua = lua.replace(lua_inject_pre.replace("\n", "\r\n"), lua_inject_post.replace("\n", "\r\n")).replace(lua_inject2_pre.replace("\n", "\r\n"), lua_inject2_post.replace("\n", "\r\n"))
+                for luareplace in luareplaces.keys():
+                    lua = lua.replace(luareplace.replace("\n", "\r\n"), luareplaces[luareplace].replace("\n", "\r\n"))
                 common.makeFolders(os.path.dirname(outfolder + file))
                 with codecs.open(outfolder + file, "w", "shift_jisx0213") as luaf:
                     luaf.write(lua)
@@ -45,6 +46,9 @@ def repack(data):
             common.logDebug("Processing", file, "...")
             with codecs.open(infolder + file, "r", "shift_jisx0213") as luaf:
                 lua = luaf.read().replace("¥", "\\").replace("\\n", "|").split("\n")
+            # Inject the new code for the BTL_SETTING file
+            if "LUA_BTL_SETTING" in file:
+                lua = lua_inject_bltsettings.split("\n") + lua[17:]
             for i in range(len(lua)):
                 lualine = game.replaceCharcodes(lua[i])
                 luastrings = re.findall('"([^"]*)"', lualine) + re.findall("'([^']*)'", lualine)
@@ -93,60 +97,96 @@ def extract(data):
     common.logMessage("Done! Extracted", len(files), "files")
 
 
-# One of the LUA scripts features a text renderer that doesn't handle ASCII well
-# This replaces it and adds VWF support
-lua_inject_pre = '''
+luareplaces = {
+# Add a new getVWF function
+'''-- tools''':
+'''-- tools
+function getVWF(subchar, default)
+  if vwf[subchar] == nil then
+    return default
+  end
+  return vwf[subchar]
+end''',
+# Change the lineLen function to return the actual width of a line
+'''    elseif s:byte(i) == string.byte("=") then
+      i = i + 2
+    else
+      i = i + 1
+      c = c + 1
+    end''':
+'''    elseif s:byte(i) == string.byte("=") then
+      i = i + 2
+    elseif s:byte(i) <= 0x7f then
+      c = c + getVWF(s:sub(i, i), 6)
+      i = i + 1
+    else
+      c = c + getVWF(s:sub(i, i+1), 12)
+      i = i + 2
+    end''',
+# Use the new lineLen function
+"local x = t.box.w * 4 - lineLen(s)   * 3": "local x = t.box.w * 4 - lineLen(s) / 2",
+"x = t.box.w * 4 - lineLen(s:sub(i)) * 3": "x = t.box.w * 4 - lineLen(s:sub(i)) / 2",
+# Handle ASCII/VWF in this box:print call
+'''
         box:print(x, y, s:sub(i, i+1));
         i = i + 2
         x = x + 12
-        sp = t:waitSay(0.9, sp);'''
-lua_inject_post = '''
+        sp = t:waitSay(0.9, sp);''':
+'''
         if s:byte(i) <= 0x7f then
           local subchar = s:sub(i, i)
           box:print(x, y, subchar);
-          if vwf[subchar] == nil then
-            x = x + 6
-          else
-            x = x + vwf[subchar]
-          end
+          x = x + getVWF(subchar, 6)
           i = i + 1
           sp = t:waitSay(0.45, sp);
         else
           local subchar = s:sub(i, i+1)
           box:print(x, y, subchar);
-          if vwf[subchar] == nil then
-            x = x + 12
-          else
-            x = x + vwf[subchar]
-          end
+          x = x + getVWF(subchar, 12)
           i = i + 2
           sp = t:waitSay(0.9, sp);
         end'''
-
-lua_inject2_pre = '''
+,
+# Handle ASCII/VWF in this box:print call
+'''
         t.box:print(x, y, s:sub(i, i+1));
         i = i + 2
         x = x + 12
-        sp = t:waitSay(0.9, sp);'''
-lua_inject2_post = '''
+        sp = t:waitSay(0.9, sp);''':
+'''
         if s:byte(i) <= 0x7f then
           local subchar = s:sub(i, i)
           t.box:print(x, y, subchar);
-          if vwf[subchar] == nil then
-            x = x + 6
-          else
-            x = x + vwf[subchar]
-          end
+          x = x + getVWF(subchar, 6)
           i = i + 1
           sp = t:waitSay(0.45, sp);
         else
           local subchar = s:sub(i, i+1)
           t.box:print(x, y, subchar);
-          if vwf[subchar] == nil then
-            x = x + 12
-          else
-            x = x + vwf[subchar]
-          end
+          x = x + getVWF(subchar, 12)
           i = i + 2
           sp = t:waitSay(0.9, sp);
         end'''
+}
+# The LUA_INJECT file has a centerPuts function at the top we need to change
+lua_inject_bltsettings = '''
+function centerPuts(txt, s)
+  local x = txt.w * 4 - lineLen(s) / 2
+  local y = txt.h * 3 - lineCount(s) * 6
+  local i = 1
+  while i <= s:len() do
+    if s:byte(i) == string.byte("\\n") then
+      i = i + 1
+      x = txt.w * 4 - lineLen(s:sub(i)) / 2
+      y = y + 13
+    elseif s:byte(i) <= 0x7f then
+      txt:print(x, y, s:sub(i, i));
+      x = x + getVWF(s:sub(i, i), 6)
+      i = i + 1
+    else
+      txt:print(x, y, s:sub(i, i+1));
+      x = x + getVWF(s:sub(i, i+1), 12)
+      i = i + 2
+    end
+  end
+end'''
