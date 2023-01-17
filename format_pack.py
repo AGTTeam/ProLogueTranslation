@@ -55,12 +55,23 @@ def readPack(data, f, packname, section, section2):
     return pack
 
 
-def repackFolders(data):
+def repackFolders(data, debon=False, deboff=False):
     packin = [data + "extract/data/", data + "extract_CHILD/pack/"]
     packout = data + "extract_PACK/"
     packrepack = data + "repack_PACK/"
     replacefolder = data + "replace_PACK/"
+    debfilein = data + "extract_PACK/dat_word_battle.bin/LUA_OPENING.lua"
+    debfileout = debfilein.replace("extract_", "repack_")
 
+    common.copyFile(debfilein, debfileout)
+    if debon or deboff:
+        with codecs.open(debfileout, "r", "shift_jisx0213") as f:
+            alldeb = f.read()
+        if debon:
+            alldeb = alldeb.replace("seq_change(\"GameTitle\")", "--seq_change(\"GameTitle\")")
+            alldeb = alldeb.replace("--seq_change(\"LaunchI\")", "seq_change(\"LaunchI\")")
+        with codecs.open(debfileout, "w", "shift_jisx0213") as f:
+            f.write(alldeb)
     if os.path.isdir(replacefolder):
         common.mergeFolder(replacefolder, packrepack)
     common.logMessage("Repacking nested PACK ...")
