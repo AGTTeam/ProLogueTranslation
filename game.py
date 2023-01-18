@@ -84,8 +84,13 @@ def readImage(infolder, file, extension):
     palettefile = file.replace(extension, ".NCLR")
     mapfile = file.replace(extension, ".NSCR")
     cellfile = file.replace(extension, ".NCER")
+    ignoredupes = False
+    if "dat_adv_menu.bin/file003_PACK2/file002" in infolder + file:
+        ignoredupes = True
+    if "dat_trap_etc.bin" in infolder + file:
+        ignoredupes = True
     # Read the image
-    palettes, image, map, cell, width, height = nitro.readNitroGraphic(infolder + palettefile, infolder + file, infolder + mapfile, infolder + cellfile)
+    palettes, image, map, cell, width, height = nitro.readNitroGraphic(infolder + palettefile, infolder + file, infolder + mapfile, infolder + cellfile, ignoredupes=ignoredupes)
     if map is not None and map.width == map.height == 512 and image.width == image.height == 256:
         width = height = image.width
-    return palettes, image, map, cell, width, height, map, cellfile
+    return palettes, image, map, cell, width, height, mapfile, cellfile

@@ -3,7 +3,7 @@ import click
 import game
 from hacktools import common, nds, nitro
 
-version = "0.8.1"
+version = "0.8.2"
 data = "ProLogueData/"
 romfile = data + "dn3.nds"
 rompatch = data + "dn3_patched.nds"
@@ -70,6 +70,8 @@ def repack(no_rom, bin, img, script, lua, pack, deb_on, deb_off):
     if all or lua:
         import format_lua
         format_lua.repack(data)
+    if all or img:
+        nitro.repackIMG(data + "work_IMG/", packout, packrepack, readfunc=game.readImage)
     if all or pack or img or script or lua or deb_on or deb_off:
         import format_pack
         format_pack.repackFolders(data, deb_on, deb_off)
