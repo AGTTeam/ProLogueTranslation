@@ -18,7 +18,7 @@
   .pool
   .endarea
 
-  ;Hook the function that reads characters to convert ASCII to SJIS
+  ;Hook the function that reads characters to handle ASCII
   .org 0x02011bf8
   ;orr r2,r2,r3,lsl 0x8
   b ASCII

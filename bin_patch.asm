@@ -42,7 +42,7 @@
 .close
 
 .open "ProLogueData/repack/overlay/overlay_0026_dec.bin",0x020c1860
-  ;Hook the function that reads characters to convert ASCII to SJIS
+  ;Hook the function that reads characters to handle ASCII
   .org 0x020c45ec
   ;orr r2,r2,r3,lsl 0x8
   b ASCII
