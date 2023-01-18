@@ -34,7 +34,7 @@ def readPack(data, f, packname, section, section2):
         file.magic = f.readString(4)
         f.seek(-4, 1)
         file.subname, file.extension = getSubname(i, section2, file.magic)
-        common.logDebug("Extracting file", i, file.subname, common.toHex(file.offset), common.toHex(file.offset), common.toHex(file.compbyte))
+        common.logDebug("Processing file", i, file.subname, "offset", common.toHex(file.offset), "size", common.toHex(file.size), "compbyte", common.toHex(file.compbyte))
         with common.Stream() as memf:
             # Compressed files
             if file.compbyte == 0x10 and "script" not in packname:
@@ -95,6 +95,7 @@ def repack(data, pack, packout, workfolder):
         section = common.getSection(flist, pack)
     with codecs.open(data + "filelist2.txt", "r", "utf-8") as flist:
         section2 = common.getSection(flist, pack)
+    common.logDebug("Processing", pack, "...")
     with common.Stream(pack, "rb") as fin:
         packfile = readPack(data, fin, pack, section, section2)
         if packfile is None:
@@ -107,6 +108,7 @@ def repack(data, pack, packout, workfolder):
             f.seek(packfile.files[0].offset)
             for i in range(len(packfile.files)):
                 file = packfile.files[i]
+                common.logDebug("  Repacking file", i, file.subname, "offset", common.toHex(file.offset), "size", common.toHex(file.size), "compbyte", common.toHex(file.compbyte))
                 offset = f.tell()
                 if os.path.isfile(workfolder + file.subname):
                     with common.Stream(workfolder + file.subname, "rb") as subf:
@@ -114,6 +116,48 @@ def repack(data, pack, packout, workfolder):
                     if file.compbyte == 0x10 and "script" not in pack:
                         filedata = nds.compress(filedata, nds.CompressionType.LZ10)
                     f.write(filedata)
+                    '''newsize = os.path.getsize(workfolder + file.subname)
+                    common.logDebug("    New size", common.toHex(newsize))
+                    with common.Stream() as memf:
+                        with common.Stream(workfolder + file.subname, "rb") as subf:
+                            if file.compbyte == 0x10 and "script" not in pack:
+                                memf.write(nds.compress(subf.read(), nds.CompressionType.LZ10))
+                            # Check for NCGR/NSCR compression
+                            elif file.extension == "NCGR":
+                                memf.write(subf.read(40))
+                                ncgrsize = subf.readUInt()
+                                fin.seek(file.offset + 40)
+                                oldncgrsize = fin.readUInt()
+                                unk = subf.readUInt()
+                                fin.seek(4, 1)
+                                oldcompbyte = fin.peek(1)[0]
+                                if oldcompbyte == 0x10 and (oldncgrsize & 0xff000000) >> 24 == 0x10:
+                                    memf.writeUInt((ncgrsize & 0x00ffffff) | (0x10 << 24))
+                                    memf.writeUInt(unk)
+                                    memf.write(nds.compress(subf.read(newsize - 44), nds.CompressionType.LZ10))
+                                else:
+                                    subf.seek(-48, 1)
+                                    memf.seek(0)
+                                    memf.write(subf.read(newsize))
+                            elif file.extension == "NSCR":
+                                memf.write(subf.read(32))
+                                fin.seek(file.offset + 32)
+                                nscrsize = subf.readUInt()
+                                oldnscrsize = fin.readUInt()
+                                oldcompbyte = fin.peek(1)[0]
+                                if oldcompbyte == 0x10 and (oldnscrsize & 0xff000000) >> 24 == 0x10:
+                                    memf.writeUInt((nscrsize & 0x00ffffff) | (0x10 << 24))
+                                    memf.write(nds.compress(subf.read(newsize - 36), nds.CompressionType.LZ10))
+                                else:
+                                    subf.seek(-36, 1)
+                                    memf.seek(0)
+                                    memf.write(subf.read(newsize))
+                            else:
+                                memf.write(subf.read())
+                        if memf.tell() != newsize:
+                            common.logDebug("    After compression", common.toHex(memf.tell()))
+                        memf.seek(0)
+                        f.write(memf.read())'''
                 else:
                     fin.seek(file.offset)
                     f.write(fin.read(file.size))
@@ -186,7 +230,7 @@ def extract(data, pack, folderin, folderout, add=""):
                         compbyte = f.peek(1)[0]
                         if compbyte == 0x10 and (nscrsize & 0xff000000) >> 24 == 0x10:
                             memf.writeUInt(nscrsize & 0x00ffffff)
-                            memf.write(nds.decompress(f, file.size - 32))
+                            memf.write(nds.decompress(f, file.size - 36))
                         else:
                             f.seek(-36, 1)
                             memf.seek(0)

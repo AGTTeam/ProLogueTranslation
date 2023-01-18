@@ -55,7 +55,6 @@ def repack(data):
     # Update the embedded PACK files
     with common.Stream(childfilein, "rb") as f:
         embeds = getEmbeddedPACK(f)
-    # Repack them in reverse order, since the biggest one is at the end
     ptrs = []
     with common.Stream(childfileout, "rb+") as f:
         f.seek(0x2e988)
@@ -63,16 +62,23 @@ def repack(data):
         for i in reversed(range(len(embeds))):
             embed = embeds[i]
             filename = childfilepack + embed["filename"]
-            if currentf == f and f.tell() + embed["size"] > 0x124e08:
+            if os.path.isfile(filename):
+                with common.Stream(filename, "rb") as fin:
+                    newdata = fin.read()
+            else:
+                with common.Stream(filename.replace("repack_", "extract_"), "rb") as fin:
+                    newdata = fin.read()
+            common.logDebug(i, "old size", common.toHex(embed["size"]), "new size", common.toHex(len(newdata)))
+            if currentf == f and f.tell() + len(newdata) > 0x124e08:
                 currentf = childfallbackf
+                common.logDebug(" moving to fallback")
             oldptr = 0x02000000 + embed["offset"]
             if currentf == f:
                 newptr = 0x02000000 + currentf.tell()
             else:
                 newptr = childinjectfallback + currentf.tell()
             ptrs.append((oldptr, newptr))
-            with common.Stream(filename, "rb") as fin:
-                currentf.write(fin.read())
+            currentf.write(newdata)
     # Update the pointers
     with common.Stream(childfileout, "rb+") as f:
         allbin = f.read()
@@ -212,7 +218,6 @@ def extract(data):
             f.seek(embed["offset"])
             with common.Stream(outpack + embed["filename"], "wb") as fout:
                 fout.write(f.read(embed["size"]))
-    common.copyFolder(outpack, outpack.replace("extract_", "repack_"))
     common.logMessage("Done! Extracted", i, "files.")
 
 

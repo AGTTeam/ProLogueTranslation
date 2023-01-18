@@ -48,7 +48,7 @@ def repack(data):
                 lua = luaf.read().replace("¥", "\\").replace("\\n", "|").split("\n")
             # Inject the new code for the BTL_SETTING file
             if "LUA_BTL_SETTING" in file:
-                lua = lua_inject_bltsettings.split("\n") + lua[17:]
+                lua = lua_inject_bltsetting.split("\n") + lua[17:]
             for i in range(len(lua)):
                 lualine = game.replaceCharcodes(lua[i])
                 luastrings = re.findall('"([^"]*)"', lualine) + re.findall("'([^']*)'", lualine)
@@ -168,8 +168,8 @@ end''',
           sp = t:waitSay(0.9, sp);
         end'''
 }
-# The LUA_INJECT file has a centerPuts function at the top we need to change
-lua_inject_bltsettings = '''
+# The LUA_BTL_SETTING file has a centerPuts function at the top we need to change
+lua_inject_bltsetting = '''
 function centerPuts(txt, s)
   local x = txt.w * 4 - lineLen(s) / 2
   local y = txt.h * 3 - lineCount(s) * 6
