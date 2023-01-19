@@ -1,5 +1,6 @@
 import os
 import codecs
+import struct
 import game
 from hacktools import common, nitro
 
@@ -7,6 +8,8 @@ from hacktools import common, nitro
 class ScriptFile:
     def __init__(self):
         self.size = 0
+        self.codesize = 0
+        self.unk = 0
         self.stringsection = 0
         self.strings = []
 
@@ -17,8 +20,26 @@ def readScript(f, filesize):
     if script.size != filesize:
         common.logWarning("Malformed bin file", script.size, filesize)
         return None
-    f.seek(8, 1)
+    script.codesize = f.readUInt()
+    script.unk = f.readUInt()
     script.stringsection = f.readUInt()
+    common.logDebug("size", common.toHex(script.size), "codesize", common.toHex(script.codesize), "unk", common.toHex(script.unk), "stringsection", common.toHex(script.stringsection))
+    f.seek(0x10)
+    try:
+        while f.tell() < script.codesize:
+            offset = f.tell()
+            opcode = f.readUShort()
+            if opcode == 0 or opcode >> 8 == 0xfe:
+                break
+            data = ""
+            while True:
+                byte = f.readUShort()
+                if byte >> 8 == 0xfe:
+                    break
+                data += common.toHex(byte).zfill(4) + " "
+            common.logDebug("  offset", common.toHex(offset).zfill(4), "opcode", common.toHex(opcode), "data", data)
+    except struct.error:
+        common.logDebug("Malformed file")
     if script.stringsection != filesize:
         f.seek(script.stringsection)
         firstptr = strptr = f.readUInt()
