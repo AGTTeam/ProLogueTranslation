@@ -81,6 +81,7 @@ def repackFolders(data, debon=False, deboff=False):
             repack(data, packout + pack, packrepack + pack, packrepack + subpackfolder)
     common.logMessage("Done!")
     common.logMessage("Repacking PACK ...")
+    common.makeFolder(data + "repack_CHILD/pack/")
     for packfolder in packin:
         files = common.getFiles(packfolder, ".bin")
         for file in common.showProgress(files):
