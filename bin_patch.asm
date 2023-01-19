@@ -56,3 +56,19 @@
   ;add r6,r6,0x2
   add r6,r6,0x1
 .close
+
+.open "ProLogueData/repack/overlay/overlay_0011_dec.bin",0x020c1860
+  ;Don't convert status screen to shift-jis
+  .org 0x020c2b5c
+  nop
+  nop
+  mov r3,sp
+  .org 0x020c2b90
+  nop
+  nop
+  mov r3,sp
+  .org 0x020c2c54
+  nop
+  nop
+  mov r3,sp
+.close
