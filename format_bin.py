@@ -97,7 +97,7 @@ def repack(data):
     # Repack the overlays
     common.copyFile(ovtablein, ovtableout)
     with common.Stream(ovtableout, "rb+") as ovt:
-        common.logMessage("Repacking overlays from", binfile, "...")
+        common.logMessage("Repacking overlays from", overlayfile, "...")
         chartot = transtot = 0
         ovfiles = common.getFiles(overlayfolderin, ".bin")
         with codecs.open(overlayfile, "r", "utf-8") as overlayf:

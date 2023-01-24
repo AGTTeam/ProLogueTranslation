@@ -16,7 +16,92 @@
   @@ret:
   b ASCII_RET
   .pool
+
+  ;Convert string in r0 from sjis to ASCII
+  SJIS_TO_ASCII:
+  push {r1-r5}
+  ldr r1,=SJIS_TO_ASCII_BUFFER
+  ldr r2,[r1]
+  cmp r2,0
+  moveq r2,1
+  movne r2,0
+  str r2,[r1]
+  addeq r1,r1,4
+  addne r1,r1,4*4
+  push {r1}
+  ;Load the sjis character and set up the lookup
+  @@loop:
+  ldrh r2,[r0]
+  cmp r2,0
+  beq @@ret
+  mov r4,0
+  ldr r3,=SJIS_TO_ASCII_LOOKUP
+  ;Search for the sjis character
+  @@loopchar:
+  ldrh r5,[r3]
+  cmp r5,0
+  beq @@notfound
+  cmp r2,r5
+  addne r4,r4,1
+  addne r3,r3,2
+  bne @@loopchar
+  ;Write the ASCII character to the buffer and continue
+  @@foundchar:
+  ldr r3,=SJIS_TO_ASCII_RESULT
+  ldrb r5,[r3,r4]
+  strb r5,[r1]
+  add r1,r1,1
+  add r0,r0,2
+  b @@loop
+  ;Didn't find this character in the lookup, so we just copy it
+  @@notfound:
+  strb r2,[r1]
+  lsr r2,r2,8
+  strb r2,[r1,1]
+  add r1,r1,2
+  add r0,r0,2
+  b @@loop
+  ;Write a 0 byte to the buffer and return
+  @@ret:
+  mov r2,0
+  strb r2,[r1]
+  pop {r0}
+  pop {r1-r5}
+  bx lr
+  .pool
+
+  SJIS_TO_ASCII_BUFFER:
+  .dw 0
+  .dw 0
+  .dw 0
+  .dw 0
+  .dw 0
+  .dw 0
+  .dw 0
   .endarea
+
+  .org 0x02075804
+  .area 0x11b
+  SJIS_TO_ASCII_LOOKUP:
+  .sjisn "０１２３４５６７８９"
+  .sjisn "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ"
+  .sjisn "ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ"
+  .sjisn "、。，．？！（）【】＝＜＞＄％＆＠"
+  .dh 0
+  SJIS_TO_ASCII_RESULT:
+  .ascii "0123456789"
+  .ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  .ascii "abcdefghijklmnopqrstuvwxyz"
+  .ascii ",.,.?!()[]=<>$%&@"
+  .endarea
+
+  ;Hook the name return function calls
+  .org 0x02010450
+  b SJIS_TO_ASCII
+  .org 0x020106cc
+  b SJIS_TO_ASCII
+  .org 0x02010418
+  b SJIS_TO_ASCII
 
   ;Make some space by redirecting some strings
   .org 0x0207ca64
@@ -39,6 +124,34 @@
   .dw 0x0207cad8
   .skip 8
   .dw 0x0207cad8
+
+  ;Make some more space
+  .org 0x02023c8c
+  .dw 0x020757f8
+  .org 0x02023d44
+  .dw 0x020757f8
+  .org 0x02023dd0
+  .dw 0x020757f8
+  .org 0x02023e18
+  .dw 0x020757f8
+  .org 0x02024910
+  .dw 0x020757f8
+  .org 0x02023e5c
+  .dw 0x020757f8
+  .org 0x02023f00
+  .dw 0x020757f8
+  .org 0x02023f04
+  .dw 0x020757f8
+  .org 0x02024338
+  .dw 0x020757f8
+  .org 0x02024474
+  .dw 0x020757f8
+  .org 0x0202498c
+  .dw 0x020757f8
+  .org 0x020247e4
+  .dw 0x020757f8
+  .org 0x02024914
+  .dw 0x020757f8
 .close
 
 .open "ProLogueData/repack/overlay/overlay_0026_dec.bin",0x020c1860
@@ -58,7 +171,7 @@
 .close
 
 .open "ProLogueData/repack/overlay/overlay_0011_dec.bin",0x020c1860
-  ;Don't convert status screen to shift-jis
+  ;Don't convert status screen to sjis
   .org 0x020c2b5c
   nop
   nop
