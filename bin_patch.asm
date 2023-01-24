@@ -86,13 +86,13 @@
   .sjisn "０１２３４５６７８９"
   .sjisn "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ"
   .sjisn "ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ"
-  .sjisn "、。，．？！（）【】＝＜＞＄％＆＠"
+  .sjisn "、。，．？！（）【】＝＜＞＄％＆"
   .dh 0
   SJIS_TO_ASCII_RESULT:
   .ascii "0123456789"
   .ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   .ascii "abcdefghijklmnopqrstuvwxyz"
-  .ascii ",.,.?!()[]=<>$%&@"
+  .ascii ",.,.?!()[]=<>$%&"
   .endarea
 
   ;Hook the name return function calls
