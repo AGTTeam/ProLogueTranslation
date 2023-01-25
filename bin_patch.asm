@@ -78,6 +78,17 @@
   .dw 0
   .dw 0
   .dw 0
+
+  DEFAULT_INPUT:
+  push {lr}
+  push {r0}
+  ;Call the normal initialization function we replaced
+  bl 0x020ab6a0
+  ;Call the function that gets called when clicking the change buttons with the correct parameter
+  pop {r0}
+  mov r1,1
+  bl 0x020ab2ec
+  pop {pc}
   .endarea
 
   .org 0x02075804
@@ -184,4 +195,10 @@
   nop
   nop
   mov r3,sp
+.close
+
+.open "ProLogueData/repack/overlay/overlay_0029_dec.bin",0x020aa840
+  ;Change default input to English characters
+  .org 0x020acf80
+  .dw DEFAULT_INPUT
 .close
