@@ -4,6 +4,7 @@ from hacktools import common, nitro
 binrange = [(474960, 501390)]
 childrange = [(1470840, 1475000)]
 wordwrap = 220
+wordwrap2 = 210
 
 
 def readShiftJIS(f, encoding="shift_jisx0213"):

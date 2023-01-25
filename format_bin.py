@@ -13,7 +13,7 @@ def detectEncodedString(f, encoding):
 def writeEncodedString(f, s, maxlen=0, encoding="shift_jis"):
     global glyphs
     # Wordwrap the string
-    s = common.wordwrap(s, glyphs, game.wordwrap, game.detectTextCode, sectionsep="\\v")
+    s = common.wordwrap(s, glyphs, game.wordwrap2, game.detectTextCode, sectionsep="\\v")
     return common.writeEncodedString(f, game.restoreCharcodes(s.replace("<white>", "#W").replace("<red>", "#R")), maxlen, encoding)
 
 
