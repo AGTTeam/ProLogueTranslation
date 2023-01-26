@@ -14,7 +14,7 @@ class ScriptFile:
         self.strings = []
 
 
-def readScript(f, filesize):
+def readScript(f, filesize, parsescript=False):
     script = ScriptFile()
     script.size = f.readUInt()
     if script.size != filesize:
@@ -24,22 +24,26 @@ def readScript(f, filesize):
     script.unk = f.readUInt()
     script.stringsection = f.readUInt()
     common.logDebug("size", common.toHex(script.size), "codesize", common.toHex(script.codesize), "unk", common.toHex(script.unk), "stringsection", common.toHex(script.stringsection))
-    f.seek(0x10)
-    try:
-        while f.tell() < script.codesize:
-            offset = f.tell()
-            opcode = f.readUShort()
-            if opcode == 0 or opcode >> 8 == 0xfe:
-                break
-            data = ""
-            while True:
-                byte = f.readUShort()
-                if byte >> 8 == 0xfe:
+    if parsescript:
+        f.seek(0x10)
+        try:
+            while f.tell() < script.codesize:
+                offset = f.tell()
+                opcode = f.readUShort()
+                if opcode == 0:
                     break
-                data += common.toHex(byte).zfill(4) + " "
-            common.logDebug("  offset", common.toHex(offset).zfill(4), "opcode", common.toHex(opcode), "data", data)
-    except struct.error:
-        common.logDebug("Malformed file")
+                opdata = ""
+                while True:
+                    data = f.readByte()
+                    opdata += common.toHex(data).zfill(2) + " "
+                    if data == 0xff:
+                        if f.peek(1)[0] == 0xfe:
+                            data = f.readByte()
+                            opdata += common.toHex(data).zfill(2) + " "
+                            break
+                common.logDebug("  offset", common.toHex(offset).zfill(4), "opcode", common.toHex(opcode).zfill(4), "data", opdata)
+        except struct.error:
+            common.logDebug("Malformed file")
     if script.stringsection != filesize:
         f.seek(script.stringsection)
         firstptr = strptr = f.readUInt()
@@ -116,6 +120,11 @@ def repack(data):
                     if f.tell() % 16 > 0:
                         f.writeZero(16 - (f.tell() % 16))
                     f.writeUIntAt(0, f.tell())
+                    if "dat_script.bin/file003_PACK2/file010" in file:
+                        f.seek(0xbd)
+                        f.writeUShort(0x3247)  # 0x3247
+                        f.writeUShort(0x0)  # 0x0
+                        f.writeUShort(0x0)  # 0x0
 
 
 def extract(data, skipdupes=True):
