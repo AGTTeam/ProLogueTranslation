@@ -13,7 +13,11 @@ def detectEncodedString(f, encoding):
 def writeEncodedString(f, s, maxlen=0, encoding="shift_jis"):
     global glyphs
     # Wordwrap the string
-    s = common.wordwrap(s, glyphs, game.wordwrap2, game.detectTextCode, sectionsep="\\v")
+    wordwrap = game.wordwrap
+    if s.startswith(">>"):
+        s = s[2:]
+        wordwrap = game.wordwrap2
+    s = common.wordwrap(s, glyphs, wordwrap, game.detectTextCode, sectionsep="\\v")
     return common.writeEncodedString(f, game.restoreCharcodes(s.replace("<white>", "#W").replace("<red>", "#R")), maxlen, encoding)
 
 
@@ -208,7 +212,7 @@ def extract(data):
                 if first:
                     overlayf.write("!FILE:" + overlay + "\n")
                     first = False
-                overlayf.write(strings[i] + "=\n")
+                overlayf.write(str(positions[i]) + "!" + strings[i] + "=\n")
     common.logMessage("Done! Extracted", totstrings, "lines")
     common.logMessage("Extracting embedded PACKs ...")
     common.makeFolder(outfolder)
