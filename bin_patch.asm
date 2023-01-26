@@ -179,6 +179,12 @@
   ;Here we only increase the text pointer by 1 since the ASCII code only adds 1 for sjis
   ;add r6,r6,0x2
   add r6,r6,0x1
+
+  ;Align wallpaper text left
+  .org 0x020c71b4
+  mov r1,0x20
+  .org 0x020c71e8
+  mov r1,0x20
 .close
 
 .open "ProLogueData/repack/overlay/overlay_0011_dec.bin",0x020c1860
