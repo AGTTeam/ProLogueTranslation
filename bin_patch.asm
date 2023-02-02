@@ -97,13 +97,13 @@
   .sjisn "０１２３４５６７８９"
   .sjisn "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ"
   .sjisn "ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ"
-  .sjisn "、。，．？！（）【】＝＜＞＄％＆"
+  .sjisn "　、。，．？！（）【】＝＜＞＄％＆"
   .dh 0
   SJIS_TO_ASCII_RESULT:
   .ascii "0123456789"
   .ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   .ascii "abcdefghijklmnopqrstuvwxyz"
-  .ascii ",.,.?!()[]=<>$%&"
+  .ascii " ,.,.?!()[]=<>$%&"
   .endarea
 
   ;Hook the name return function calls
@@ -113,6 +113,14 @@
   b SJIS_TO_ASCII
   .org 0x02010418
   b SJIS_TO_ASCII
+
+  ;Swap first and last name
+  .org 0x0201044c
+  ;add r0,r0,0x20
+  add r0,r0,0x10
+  .org 0x02010414
+  ;add r0,r0,0x10
+  add r0,r0,0x20
 
   ;Make some space by redirecting some strings
   .org 0x0207ca64
