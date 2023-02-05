@@ -112,12 +112,7 @@ def repack(data, pack, packout, workfolder):
                 common.logDebug("  Repacking file", i, file.subname, "offset", common.toHex(file.offset), "size", common.toHex(file.size), "compbyte", common.toHex(file.compbyte))
                 offset = f.tell()
                 if os.path.isfile(workfolder + file.subname):
-                    with common.Stream(workfolder + file.subname, "rb") as subf:
-                        filedata = subf.read()
-                    if file.compbyte == 0x10 and "script" not in pack:
-                        filedata = nds.compress(filedata, nds.CompressionType.LZ10)
-                    f.write(filedata)
-                    '''newsize = os.path.getsize(workfolder + file.subname)
+                    newsize = os.path.getsize(workfolder + file.subname)
                     common.logDebug("    New size", common.toHex(newsize))
                     with common.Stream() as memf:
                         with common.Stream(workfolder + file.subname, "rb") as subf:
@@ -158,7 +153,7 @@ def repack(data, pack, packout, workfolder):
                         if memf.tell() != newsize:
                             common.logDebug("    After compression", common.toHex(memf.tell()))
                         memf.seek(0)
-                        f.write(memf.read())'''
+                        f.write(memf.read())
                 else:
                     fin.seek(file.offset)
                     f.write(fin.read(file.size))
