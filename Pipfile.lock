@@ -180,11 +180,11 @@
         },
         "hacktools": {
             "hashes": [
-                "sha256:7c5635be0cf310f0f2e189ca99d23a7aaa1f72050e51301d8086297d19511a4e",
-                "sha256:968812dc5b147e7dc51a6487fbba8141f7916d91dd3dd7a63891f292b64eca0e"
+                "sha256:72e387ef8fba6f41367ff1bfa39f1fa8b0c4475f5393e46d7f044ef764c2c6dd",
+                "sha256:da24c3e98d6025107a076042ea8b621c92628a3538ef0023be2bfce90e7d7aad"
             ],
             "index": "pypi",
-            "version": "==0.25.2"
+            "version": "==0.26.0"
         },
         "ips-util": {
             "hashes": [
@@ -284,6 +284,13 @@
             ],
             "markers": "python_version >= '3.7'",
             "version": "==9.4.0"
+        },
+        "polib": {
+            "hashes": [
+                "sha256:d3ee85e0c6788f789353416b1612c6c92d75fe6ccfac0029711974d6abd0f86d",
+                "sha256:e02c355ae5e054912e3b0d16febc56510eff7e49d60bf22aecb463bd2f2a2dfa"
+            ],
+            "version": "==1.1.1"
         },
         "psd-tools": {
             "hashes": [
