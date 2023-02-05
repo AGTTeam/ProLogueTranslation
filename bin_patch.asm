@@ -121,6 +121,12 @@
   .org 0x02010414
   ;add r0,r0,0x10
   add r0,r0,0x20
+  .org 0x020aad4c
+  ;mov r4,r0
+  mov r3,r0
+  .org 0x020aad58
+  ;mov r3,r0
+  mov r4,r0
 
   ;Make some space by redirecting some strings
   .org 0x0207ca64
