@@ -114,19 +114,10 @@
   .org 0x02010418
   b SJIS_TO_ASCII
 
-  ;Swap first and last name
-  .org 0x0201044c
-  ;add r0,r0,0x20
-  add r0,r0,0x10
-  .org 0x02010414
-  ;add r0,r0,0x10
-  add r0,r0,0x20
-  .org 0x020aad4c
-  ;mov r4,r0
-  mov r3,r0
-  .org 0x020aad58
-  ;mov r3,r0
-  mov r4,r0
+  ;Force family name for <name>
+  .org 0x0202f3f4
+  ;.dw 0x0202e6c4
+  .dw 0x0202e648
 
   ;Make some space by redirecting some strings
   .org 0x0207ca64
@@ -199,6 +190,11 @@
   mov r1,0x20
   .org 0x020c71e8
   mov r1,0x20
+
+  ;Force family name for abcd
+  .org 0x020c3414
+  ;bl 0x020c1ae4
+  bl 0x020c1ad4
 .close
 
 .open "ProLogueData/repack/overlay/overlay_0011_dec.bin",0x020c1860
