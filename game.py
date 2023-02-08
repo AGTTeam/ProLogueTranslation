@@ -5,6 +5,39 @@ binrange = [(474960, 501390)]
 childrange = [(1470840, 1475000)]
 wordwrap = 220
 wordwrap2 = 216
+scriptinject = {
+    # Intro part 1
+    "dat_script.bin/file003_PACK2/file009.bin": {
+        "offsets": [0x9a, 0x101],
+        "pointers": [],
+        "strings": [
+            "<toggle>",
+            "Allow me to ask a few questions.",
+        ],
+        "changes": [],
+        # Remove the "wait for click" part
+        "removes": [
+            (0x10a, 0xb),
+        ],
+    },
+    # Intro part 2
+    "dat_script.bin/file003_PACK2/file010.bin": {
+        "offsets": [0xb4, 0xea, 0x100, 0x12e, 0x137],
+        "pointers": [0xd5, 0xeb],
+        "strings": [
+            "By the way, how do you feel about sweets?",
+            "I see. I think we'll get along just fine.",
+            "Is that so? I quite like them, myself.",
+            "One last thing. Do you have what it takes|to stand up to evil?",
+            "<toggle>",
+        ],
+        "changes": [],
+        # Remove the "wait for click" part
+        "removes": [
+            (0x109, 0xb),
+        ],
+    },
+}
 
 
 def readShiftJIS(f, encoding="shift_jisx0213"):

@@ -89,6 +89,36 @@
   mov r1,1
   bl 0x020ab2ec
   pop {pc}
+
+  PLAYING_INTRO:
+  .dw 0
+
+  NO_AUDIO_PAUSE:
+  push {r0}
+  ldr r0,=PLAYING_INTRO
+  ldr r0,[r0]
+  cmp r0,1
+  moveq r4,0
+  movne r4,1
+  pop {r0}
+  b NO_AUDIO_PAUSE_RET
+
+  CHECK_SCRIPT_OPCODE:
+  cmp r6,0xf0
+  bne @@ret
+  push {r0-r1}
+  ldr r0,=PLAYING_INTRO
+  ldr r1,[r0]
+  cmp r1,0
+  moveq r1,1
+  movne r1,0
+  str r1,[r0]
+  pop {r0-r1}
+  b CHECK_SCRIPT_OPCODE_CONTINUE
+  @@ret:
+  cmp r6,0x30
+  b CHECK_SCRIPT_OPCODE_RET
+  .pool
   .endarea
 
   .org 0x02075804
@@ -168,6 +198,20 @@
   .dw 0x020757f8
   .org 0x02024914
   .dw 0x020757f8
+.close
+
+.open "ProLogueData/repack/overlay/overlay_0000_dec.bin",0x020aa840
+  .org 0x020acbc8
+  ;mov r4,1
+  b NO_AUDIO_PAUSE
+  NO_AUDIO_PAUSE_RET:
+
+  .org 0x020aec94
+  CHECK_SCRIPT_OPCODE_CONTINUE:
+
+  .org 0x020aecc0
+  b CHECK_SCRIPT_OPCODE
+  CHECK_SCRIPT_OPCODE_RET:
 .close
 
 .open "ProLogueData/repack/overlay/overlay_0026_dec.bin",0x020c1860
