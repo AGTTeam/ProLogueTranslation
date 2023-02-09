@@ -105,10 +105,12 @@ def restoreCharcodes(sjis):
 
 
 def detectTextCode(s, i=0):
-    if s[i] == "\\" and s[1] == "t":
+    if s[i] == "\\" and s[i+1] == "t":
         return 1
-    if s[i] == "\\" and s[1] == "v":
+    if s[i] == "\\" and s[i+1] == "v":
         return 1
+    if s[i] == "@" and s[i+1] == "f" and (s[i+2] == "R" or s[i+2] == "W"):
+        return 2
     if s[i] == "<":
         return len(s[i:].split(">", 1)[0]) + 1
     return 0
