@@ -3,7 +3,7 @@ import click
 import game
 from hacktools import common, nds, nitro
 
-version = "0.10.1"
+version = "0.11.0"
 data = "ProLogueData/"
 romfile = data + "dn3.nds"
 rompatch = data + "dn3_patched.nds"
@@ -31,10 +31,6 @@ def extract(rom, bin, img, bmd, script, lua):
     if all or rom:
         nds.extractRom(romfile, infolder, outfolder)
         nds.extractRom(childfile, childin, childout)
-        nitropacker = common.bundledExecutable("NitroPacker.exe")
-        if os.path.isfile(nitropacker):
-            common.execute(nitropacker + " -u \"{rom}\" \"{folder}\" \"dn3_child\"".format(rom=childfile, folder=childin), False)
-            common.copyFolder(childin, childout)
     if all or rom or bin:
         import format_bin
         format_bin.extract(data)
@@ -81,13 +77,7 @@ def repack(no_rom, bin, img, script, lua, pack, deb_on, deb_off):
     if not no_rom:
         if os.path.isdir(replacefolder):
             common.mergeFolder(replacefolder, outfolder)
-        nitropacker = common.bundledExecutable("NitroPacker.exe")
-        if not os.path.isfile(nitropacker):
-            common.logMessage("NitroPacker not found, the child rom will not be repacked.")
-        else:
-            common.logMessage("Repacking ROM", childfile, "...")
-            common.execute(nitropacker + " -p \"{xml}\" \"{rom}\" \"dn3_child\"".format(xml=childout + "dn3_child.xml", rom=childfileout), False)
-            common.logMessage("Done!")
+        nds.repackRom(childfile, childfileout, childout)
         nds.repackRom(romfile, rompatch, outfolder, patchfile)
 
 
