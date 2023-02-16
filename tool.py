@@ -3,7 +3,7 @@ import click
 import game
 from hacktools import common, nds, nitro
 
-version = "0.11.0"
+version = "0.11.1"
 data = "ProLogueData/"
 romfile = data + "dn3.nds"
 rompatch = data + "dn3_patched.nds"
@@ -29,9 +29,7 @@ childout = data + "repack_CHILD/"
 def extract(rom, bin, img, bmd, script, lua):
     all = not rom and not bin and not img and not bmd and not script and not lua
     if all or rom:
-        common.makeFolder(infolder)
         nds.extractRom(romfile, infolder, outfolder)
-        common.makeFolder(childin)
         nds.extractRom(childfile, childin, childout)
     if all or rom or bin:
         import format_bin
