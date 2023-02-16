@@ -29,7 +29,9 @@ childout = data + "repack_CHILD/"
 def extract(rom, bin, img, bmd, script, lua):
     all = not rom and not bin and not img and not bmd and not script and not lua
     if all or rom:
+        common.makeFolders(outfolder)
         nds.extractRom(romfile, infolder, outfolder)
+        common.makeFolders(childout)
         nds.extractRom(childfile, childin, childout)
     if all or rom or bin:
         import format_bin
