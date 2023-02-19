@@ -139,8 +139,6 @@
   ;Hook the name return function calls
   .org 0x02010450
   b SJIS_TO_ASCII
-  .org 0x020106cc
-  b SJIS_TO_ASCII
   .org 0x02010418
   b SJIS_TO_ASCII
 
