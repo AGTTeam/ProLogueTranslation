@@ -143,9 +143,9 @@
   b SJIS_TO_ASCII
 
   ;Force family name for <name>
-  .org 0x0202f3f4
+  ;.org 0x0202f3f4
   ;.dw 0x0202e6c4
-  .dw 0x0202e648
+  ;.dw 0x0202e648
 
   ;Make some space by redirecting some strings
   .org 0x0207ca64
@@ -234,9 +234,9 @@
   mov r1,0x20
 
   ;Force family name for abcd
-  .org 0x020c3414
+  ;.org 0x020c3414
   ;bl 0x020c1ae4
-  bl 0x020c1ad4
+  ;bl 0x020c1ad4
 .close
 
 .open "ProLogueData/repack/overlay/overlay_0011_dec.bin",0x020c1860
