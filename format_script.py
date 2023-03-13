@@ -19,7 +19,7 @@ def readScript(f, filesize, parsescript=False):
     script = ScriptFile()
     script.size = f.readUInt()
     if script.size != filesize:
-        common.logWarning("Malformed bin file", script.size, filesize)
+        common.logDebug("Malformed bin file", script.size, filesize)
         return None
     script.codesize = f.readUInt()
     script.unk = f.readUInt()

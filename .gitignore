@@ -1,9 +1,7 @@
 __pycache__
-
-build
-ProLogueData
+.DS_Store
 *.log
-*.exe
-*.config
-*.dll
+ProLogueData
+*.nds
+*.sav
 notes.md

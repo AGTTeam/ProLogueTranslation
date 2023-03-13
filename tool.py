@@ -3,9 +3,9 @@ import click
 import game
 from hacktools import common, nds, nitro
 
-version = "0.11.2"
+version = "1.0.0"
 data = "ProLogueData/"
-romfile = data + "dn3.nds"
+romfile = "dn3.nds"
 rompatch = data + "dn3_patched.nds"
 infolder = data + "extract/"
 replacefolder = data + "replace/"
@@ -50,14 +50,14 @@ def extract(rom, bin, img, bmd, script, lua):
 
 
 @common.cli.command()
-@click.option("--no-rom", is_flag=True, default=False)
+@click.option("--no-rom", is_flag=True, default=False, hidden=True)
 @click.option("--bin", is_flag=True, default=False)
 @click.option("--img", is_flag=True, default=False)
 @click.option("--script", is_flag=True, default=False)
 @click.option("--lua", is_flag=True, default=False)
 @click.option("--pack", is_flag=True, default=False)
-@click.option("--deb-on", is_flag=True, default=False)
-@click.option("--deb-off", is_flag=True, default=False)
+@click.option("--deb-on", is_flag=True, default=False, hidden=True)
+@click.option("--deb-off", is_flag=True, default=False, hidden=True)
 def repack(no_rom, bin, img, script, lua, pack, deb_on, deb_off):
     all = not bin and not img and not script and not lua and not pack
     if all or script:
@@ -81,12 +81,11 @@ def repack(no_rom, bin, img, script, lua, pack, deb_on, deb_off):
         nds.repackRom(romfile, rompatch, outfolder, patchfile)
 
 
+@common.cli.command(hidden=True)
+@click.option("--gui", is_flag=True, default=False)
+def main(gui):
+    common.runTool(gui, common.cli, "ProLogueTranslation", version, data, romfile)
+
+
 if __name__ == "__main__":
-    click.echo("ProLogueTranslation version " + version)
-    if not os.path.isdir(data):
-        common.logError(data, "folder not found.")
-        quit()
-    if not os.path.isfile(romfile):
-        common.logError(romfile, "file not found.")
-        quit()
-    common.runCLI(common.cli)
+    common.cli()

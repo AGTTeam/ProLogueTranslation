@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-hacktools = {extras = ["armips", "graphics", "nds", "xdelta"], version = "*"}
+hacktools = {editable = true, git = "https://github.com/Illidanz/hacktools.git", extras=["armips", "cli", "graphics", "nds", "xdelta"]}
 
 [requires]
 python_version = "3"
