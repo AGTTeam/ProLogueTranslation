@@ -81,11 +81,5 @@ def repack(no_rom, bin, img, script, lua, pack, deb_on, deb_off):
         nds.repackRom(romfile, rompatch, outfolder, patchfile)
 
 
-@common.cli.command(hidden=True)
-@click.option("--gui", is_flag=True, default=False)
-def main(gui):
-    common.runTool(gui, common.cli, "ProLogueTranslation", version, data, romfile)
-
-
 if __name__ == "__main__":
-    common.cli()
+    common.setupTool("ProLogueTranslation", version, data, romfile, 0x259cf66b)

@@ -21,12 +21,12 @@ pipenv run start pythonw tool.py --gui
 goto:eof
 
 :noPython
-echo Error^: Python is not installed
+echo Error^: Python is not installed.
 pause
 goto:eof
 
 :noPip
-echo Error^: pip is not installed
+echo Error^: pip is not installed.
 pause
 goto:eof
 
