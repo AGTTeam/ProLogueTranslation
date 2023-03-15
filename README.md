@@ -1,10 +1,10 @@
 # ProLogue Translation
 ## Setup
 Install [Python 3](https://www.python.org/downloads/).  
+Install [ImageMagick](https://imagemagick.org/script/download.php). For Windows, check "Add application directory to your system path" while installing.  
 Download this repository by downloading and extracting it, or cloning it.  
 Copy the original Japanese rom into the same folder and rename it as `dn3.nds`.  
-(Optional, only for PSD export) Install [ImageMagick](https://imagemagick.org/script/download.php). For Windows, check "Add application directory to your system path" while installing.  
-Run `run.bat` (for Windows) or `run` (for OSX/Linux) to run the tool.  
+Run `run_windows.bat` (for Windows) or `run_bash` (for OSX/Linux) to run the tool.  
 ## Text Editing
 Rename the `*_output.txt` files to `*_input.txt` (`bin_output.txt` to `bin_input.txt`, etc) and add translations for each line after the `=` sign.  
 To blank out a line, use a single `!`. If just left empty, the line will be left untranslated.  
