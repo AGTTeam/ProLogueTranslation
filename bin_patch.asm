@@ -147,6 +147,10 @@
   ;.dw 0x0202e6c4
   ;.dw 0x0202e648
 
+  ;Don't call this function at startup to give us some space for string overflows
+  .org 0x02000ec4
+  nop
+
   ;Make some space by redirecting some strings
   .org 0x0207ca64
   .dw 0x0207cad8

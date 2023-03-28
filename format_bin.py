@@ -44,8 +44,8 @@ def repack(data):
     glyphs = nitro.readNFTR(fontfile).glyphs
     # Expand and repack the bin files
     fallbackf = common.Stream().__enter__()
-    injectfallback = 0x020ebcc0 #0x020a3700
-    injectsize = 0x7a7c0 #0x6500
+    injectfallback = 0x02330020
+    injectsize = 0x13c80
     injectoffset = nds.expandBIN(binfilein, binfileout, headerin, headerout, injectsize, injectfallback)
     nds.repackBIN(game.binrange, readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", binin=binfilein, binout=binfileout, binfile=binfile, fallbackf=fallbackf, injectfallback=injectfallback, nocopy=True)
     childfallbackf = common.Stream().__enter__()
