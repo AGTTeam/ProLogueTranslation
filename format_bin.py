@@ -212,7 +212,8 @@ def extract(data):
                 if first:
                     overlayf.write("!FILE:" + overlay + "\n")
                     first = False
-                overlayf.write(str(positions[i]) + "!" + strings[i] + "=\n")
+                # overlayf.write(str(positions[i]) + "!" + strings[i] + "=\n")
+                overlayf.write(strings[i] + "=\n")
     common.logMessage("Done! Extracted", totstrings, "lines")
     common.logMessage("Extracting embedded PACKs ...")
     common.makeFolder(outfolder)

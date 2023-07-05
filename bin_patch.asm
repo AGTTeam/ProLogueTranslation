@@ -259,6 +259,14 @@
   mov r3,sp
 .close
 
+.open "ProLogueData/repack/overlay/overlay_0014_dec.bin",0
+  ;Manual translation for a couple DS Download Play strings
+  .org 0x1670
+  .ascii "L",0," ",0,"C",0,"o",0,"m",0,"m",0,".",0,0,0,0,0
+  .org 0x170c
+  .ascii "C",0,"h",0,"a",0,"t",0," ",0,"w",0,"i",0,"t",0,"h",0," ",0,"L",0,0xa,0,"(",0,"D",0,"e",0,"m",0,"o",0,")",0,0,0,0,0,0,0,0,0,0
+.close
+
 .open "ProLogueData/repack/overlay/overlay_0029_dec.bin",0x020aa840
   ;Change default input to English characters
   .org 0x020acf80
