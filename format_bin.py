@@ -49,8 +49,8 @@ def repack(data):
     injectoffset = nds.expandBIN(binfilein, binfileout, headerin, headerout, injectsize, injectfallback)
     nds.repackBIN(game.binrange, readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", binin=binfilein, binout=binfileout, binfile=binfile, fallbackf=fallbackf, injectfallback=injectfallback, nocopy=True)
     childfallbackf = common.Stream().__enter__()
-    childinjectfallback = 0x0226e7a0
-    childinjectsize = 0x50000
+    childinjectfallback = 0x02330020
+    childinjectsize = 0x13c80
     childinjectoffset = nds.expandBIN(childfilein, childfileout, childheaderin, childheaderout, childinjectsize, childinjectfallback)
     nds.repackBIN(game.childrange, readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", binin=childfilein, binout=childfileout, binfile=childfile, fallbackf=childfallbackf, injectfallback=childinjectfallback, nocopy=True)
     # Pad to 0x10
