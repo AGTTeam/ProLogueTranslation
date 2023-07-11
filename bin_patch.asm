@@ -136,6 +136,16 @@
   .ascii " ,.,.?!()[]=<>$%&"
   .endarea
 
+  .org 0x0207592c
+  .area 0x73
+  ;Manual translation for a couple DS Download Play strings
+  .align
+  DOWNLOAD_PLAY1:
+  .ascii "L",0," ",0,"C",0,"o",0,"m",0,"m",0,"u",0,"n",0,"i",0,"c",0,"a",0,"t",0,"o",0,"r",0,0,0
+  DOWNLOAD_PLAY2:
+  .ascii "C",0,"h",0,"a",0,"t",0," ",0,"w",0,"i",0,"t",0,"h",0," ",0,"L",0," ",0,"o",0,"n",0," ",0,"y",0,"o",0,"u",0,"r",0," ",0,"D",0,"S",0,".",0,0xa,0,"(",0,"T",0,"r",0,"i",0,"a",0,"l",0," ",0,"V",0,"e",0,"r",0,"s",0,"i",0,"o",0,"n",0,")",0,0,0
+  .endarea
+
   ;Hook the name return function calls
   .org 0x02010450
   b SJIS_TO_ASCII
@@ -200,6 +210,12 @@
   .dw 0x020757f8
   .org 0x02024914
   .dw 0x020757f8
+  .org 0x02024cbc
+  .dw 0x020757f8
+  .org 0x02024f34
+  .dw 0x020757f8
+  .org 0x02024f38
+  .dw 0x020757f8
 .close
 
 .open "ProLogueData/repack/overlay/overlay_0000_dec.bin",0x020aa840
@@ -259,12 +275,10 @@
   mov r3,sp
 .close
 
-.open "ProLogueData/repack/overlay/overlay_0014_dec.bin",0
-  ;Manual translation for a couple DS Download Play strings
-  .org 0x1670
-  .ascii "L",0," ",0,"C",0,"o",0,"m",0,"m",0,".",0,0,0,0,0
-  .org 0x170c
-  .ascii "C",0,"h",0,"a",0,"t",0," ",0,"w",0,"i",0,"t",0,"h",0," ",0,"L",0,0xa,0,"(",0,"D",0,"e",0,"m",0,"o",0,")",0,0,0,0,0,0,0,0,0,0
+.open "ProLogueData/repack/overlay/overlay_0014_dec.bin",0x020c1860
+  .org 0x020c2e34
+  .dw DOWNLOAD_PLAY1
+  .dw DOWNLOAD_PLAY2
 .close
 
 .open "ProLogueData/repack/overlay/overlay_0029_dec.bin",0x020aa840
