@@ -21,6 +21,17 @@ def writeEncodedString(f, s, maxlen=0, encoding="shift_jis"):
     return common.writeEncodedString(f, game.restoreCharcodes(s.replace("<white>", "#W").replace("<red>", "#R")), maxlen, encoding)
 
 
+def writeChildString(f, s, maxlen=0, encoding="shift_jis"):
+    # Child strings need an additional 0 byte at the end, so we add an additional character and then replace it
+    s += "."
+    ret = writeEncodedString(f, s, maxlen, encoding)
+    if ret > -1:
+        f.seek(-2, 1)
+        f.writeByte(0)
+        f.seek(1, 1)
+    return ret
+
+
 def repack(data):
     binfile = data + "bin_input.txt"
     binfilein = data + "extract/arm9_dec.bin"
@@ -52,7 +63,7 @@ def repack(data):
     childinjectfallback = 0x02330020
     childinjectsize = 0x13c80
     childinjectoffset = nds.expandBIN(childfilein, childfileout, childheaderin, childheaderout, childinjectsize, childinjectfallback)
-    nds.repackBIN(game.childrange, readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", binin=childfilein, binout=childfileout, binfile=childfile, fallbackf=childfallbackf, injectfallback=childinjectfallback, nocopy=True)
+    nds.repackBIN(game.childrange, readfunc=detectEncodedString, writefunc=writeChildString, encoding="shift_jisx0213", binin=childfilein, binout=childfileout, binfile=childfile, fallbackf=childfallbackf, injectfallback=childinjectfallback, nocopy=True)
     # Pad to 0x10
     if childfallbackf.tell() % 0x10 > 0:
         childfallbackf.writeZero(0x10 - (childfallbackf.tell() % 0x10))
