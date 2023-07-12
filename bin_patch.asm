@@ -234,6 +234,20 @@
   .org 0x020aecc0
   b CHECK_SCRIPT_OPCODE
   CHECK_SCRIPT_OPCODE_RET:
+
+  ;Swap @n0
+  .org 0x020b1fe8
+  ;bl 0x02010444
+  bl 0x0201040c
+  .org 0x020b1ff0
+  ;bl 0x0201040c
+  bl 0x02010444
+  .org 0x020b2000
+  ;bl 0x02010444
+  bl 0x0201040c
+  .org 0x020b1ff8
+  ;bl 0x0201040c
+  bl 0x02010444
 .close
 
 .open "ProLogueData/repack/overlay/overlay_0026_dec.bin",0x020c1860
