@@ -152,10 +152,14 @@
   .org 0x02010418
   b SJIS_TO_ASCII
 
-  ;Force family name for <name>
-  ;.org 0x0202f3f4
+  ;Swap <name> (first -> family)
+  .org 0x0202f3f4
   ;.dw 0x0202e6c4
+  .dw 0x0202e648
+  ;Swap <name> (family -> first)
+  .org 0x0202f3e4
   ;.dw 0x0202e648
+  .dw 0x0202e6c4
 
   ;Don't call this function at startup to give us some space for string overflows
   .org 0x02000ec4
@@ -253,10 +257,17 @@
   .org 0x020c71e8
   mov r1,0x20
 
-  ;Force family name for abcd
-  ;.org 0x020c3414
+  ;Swap abcd name (first -> family)
+  .org 0x020c3414
   ;bl 0x020c1ae4
+  bl 0x020c1ad4
+  .org 0x020c3448
+  ;bl 0x020c1ae4
+  bl 0x020c1ad4
+  ;Swap abcd name (family -> first)
+  .org 0x020c33f8
   ;bl 0x020c1ad4
+  bl 0x020c1ae4
 .close
 
 .open "ProLogueData/repack/overlay/overlay_0011_dec.bin",0x020c1860
