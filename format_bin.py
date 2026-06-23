@@ -128,7 +128,7 @@ def repack(data):
                 # Read the ram address from the overlay table
                 ovt.seek(((i - 1) // 2) * 0x20 + 0x4)
                 ramaddr = ovt.readUInt()
-                notfound = common.repackBinaryStrings(section, overlayfolderin + overlay, overlayfolderout + overlay, [(0, filesize)], [], readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", pointerstart=ramaddr, injectstart=ramaddr, fallbackf=fallbackf, injectfallback=injectfallback)
+                notfound, _ = common.repackBinaryStrings(section, overlayfolderin + overlay, overlayfolderout + overlay, [(0, filesize)], [], readfunc=detectEncodedString, writefunc=writeEncodedString, encoding="shift_jisx0213", pointerstart=ramaddr, injectstart=ramaddr, fallbackf=fallbackf, injectfallback=injectfallback)
                 for pointer in notfound:
                     common.logError("Pointer", common.toHex(pointer.old), "->", common.toHex(pointer.new), "not found for string", pointer.str)
         common.logMessage("Done! Translation is at {0:.2f}%".format((100 * transtot) / chartot))
